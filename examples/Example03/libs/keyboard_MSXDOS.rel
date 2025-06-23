@@ -1,0 +1,35 @@
+XL3
+H 9 areas 4 global symbols
+M keyboard_MSXDOS
+O -mz80
+S .__.ABS. Def000000
+A _CODE size 33 flags 0 addr 0
+S _KillBuffer Def000000
+S _GetKeyMatrix Def000022
+S _INKEY Def000011
+A _DATA size 0 flags 0 addr 0
+A _INITIALIZED size 0 flags 0 addr 0
+A _DABS size 0 flags 8 addr 0
+A _HOME size 0 flags 0 addr 0
+A _GSINIT size 0 flags 0 addr 0
+A _GSFINAL size 0 flags 0 addr 0
+A _INITIALIZER size 0 flags 0 addr 0
+A _CABS size 0 flags 8 addr 0
+T 00 00 00
+R 00 00 00 00
+T 00 00 00 DD E5 DD 21 56 01 FD 2A C0 FC CD 1C 00
+R 00 00 00 00
+T 0D 00 00 FB DD E1 C9
+R 00 00 00 00
+T 11 00 00
+R 00 00 00 00
+T 11 00 00 DD E5 DD 21 9F 00 FD 2A C0 FC CD 1C 00
+R 00 00 00 00
+T 1E 00 00 FB DD E1 C9
+R 00 00 00 00
+T 22 00 00
+R 00 00 00 00
+T 22 00 00 DD E5 DD 21 41 01 FD 2A C0 FC CD 1C 00
+R 00 00 00 00
+T 2F 00 00 FB DD E1 C9
+R 00 00 00 00

@@ -1,7 +1,7 @@
 # VDP TMS9918A MSX SDCC Library (fR3eL Project)
 
 ```
-Author: mvac7 [mvac7303b@gmail.com]
+Author: mvac7
 Architecture: MSX
 Format: C Object (SDCC .rel)
 Programming language: C and Z80 assembler
@@ -12,11 +12,13 @@ Programming language: C and Z80 assembler
 
 Open Source library with basic functions to work with the TMS9918A/28A/29A video processor.
 
-It does not use the MSX BIOS, so it can be used to develop ROM applications such as MSX-DOS.
+It does not use the MSX BIOS but it does require system variables, so it can be used for any MSX application although it is designed for the MSX-DOS environment.
 
 Use them for developing MSX applications using [Small Device C Compiler (SDCC)](http://sdcc.sourceforge.net/) cross compiler.
 
-In the source code (\examples), you can find applications for testing and learning purposes.
+You can access the documentation here with [`How to use the library`](docs/HOWTO.md).
+
+Within this project you will find the [`examples/`](examples/) folder with applications for testing and learning purposes.
 
 This library is part of the [MSX fR3eL Project](https://github.com/mvac7/SDCC_MSX_fR3eL).
 
@@ -25,7 +27,13 @@ Enjoy it!
 
 
 ## History of versions
-- v1.4 (16 August 2022) Bug#2 (init VRAM addr in V9938) and code optimization 
+- v1.5 (11/12/2023) 
+	- Update to SDCC (4.1.12) Z80 calling conventions
+	- Added SetVRAMtoREAD and SetVRAMtoWRITE functions
+	- Added FastVPOKE and FastVPEEK functions
+	- Added initialization of MC mode (in SCREEN function) with sorted map.
+	- The order of input values in the VPOKE function has been reversed to optimize the function by taking advantage of the new Z80 calling conventions.
+- v1.4 (16 August 2022) Bug #2 (initialize VRAM address in V9938) and code optimization 
 - v1.3 (23 July  2019) COLOR function improvements
 - v1.2 ( 4 May   2019) 
 - v1.1 (25 April 2019) 
@@ -35,25 +43,9 @@ Enjoy it!
 
 ## Requirements
 
-* Small Device C Compiler (SDCC) v3.9 http://sdcc.sourceforge.net/
-* Hex2bin v2.5 http://hex2bin.sourceforge.net/ 
+- [Small Device C Compiler (SDCC) v4.4](http://sdcc.sourceforge.net/)
+- [Hex2bin v2.5](http://hex2bin.sourceforge.net/)
 
-
-
-## Functions
-
-* void **SCREEN**(char mode) - Sets the display mode of the screen.
-* void **SetSpritesSize**(char size) - Set size type for the sprites. (0=8x8; 1=16x16)
-* void **SetSpritesZoom**(char zoom) - Set zoom type for the sprites. (0=x1; 1=x2)
-* void **CLS**() - Clear Screen. Fill in 0, all Name Table.
-* void **ClearSprites**() - Initialises the sprite attribute table.
-* void **COLOR**(char ink, char BG, char border) - Put the ink, background and foreground colors.
-* void **VPOKE**(unsigned int VRAMaddr, char value) - Writes a byte to the video RAM.
-* char **VPEEK**(unsigned int VRAMaddr) - Reads data from the video RAM.
-* void **FillVRAM**(unsigned int VRAMaddr, unsigned int size, char value) - Fill a large area of the VRAM of the same byte.
-* void **CopyToVRAM**(unsigned int RAMaddr, unsigned int VRAMaddr, unsigned int size) - Block transfer from memory to VRAM.
-* void **CopyFromVRAM**(unsigned int VRAMaddr, unsigned int RAMaddr, unsigned int size) - Block transfer from VRAM to memory.
-* void **SetVDP**(char register, char value) - Writes a value in VDP registers.
 
 
 
@@ -74,14 +66,3 @@ In the case of wanting to adapt this library to another computer, they would hav
 The colors of ink and background of the COLOR function are only useful in text mode, 
 since the BIOS uses these values to initialize the color table in the screen startup routines and this library does not. 
 In all other modes it is useful to adjust the border color of the screen.
-
-
-
-## Documentation
-
-* Texas Instruments TMS9918A application manual [(PDF)](http://map.grauw.nl/resources/video/texasinstruments_tms9918.pdf)
-* Texas Instruments VDP Programmer’s Guide [(PDF)](http://map.grauw.nl/resources/video/ti-vdp-programmers-guide.pdf)
-* Texas Instruments TMS9918A VDP by Sean Young [(TXT)](http://bifi.msxnet.org/msxnet/tech/tms9918a.txt)
-* 9938 Technical Data Book [(PDF)](http://map.grauw.nl/resources/video/yamaha_v9938.pdf) [(TXT)](http://map.grauw.nl/resources/video/v9938/v9938.xhtml)
-* 9958 Technical Data Book [(PDF)](http://map.grauw.nl/resources/video/yamaha_v9958_ocr.pdf)
-* Portar Doc Video Display Processor [(WEB)](https://problemkaputt.de/portar.htm#videodisplayprocessor)
