@@ -298,7 +298,7 @@ FastVPEEK
 Description:
 		Reads the next video RAM value.
 		Requires the VDP to be in read mode, either by previously 
-		using VPEEK or SetVRAMtoREAD functions.
+		using VPEEK or SetVDPtoREAD functions.
 Input:	-
 Output:	[char] value
 ============================================================================= */
@@ -370,13 +370,13 @@ void SetVDP(char reg, char value);
 
 
 /* =============================================================================
-SetVRAMtoREAD
+SetVDPtoREAD
 Description:
 		Enable VDP to read (Similar to BIOS SETRD)
 Input:	[char] VRAM address
 Output:	-
 ============================================================================= */
-void SetVRAMtoREAD(unsigned int vaddr);
+void SetVDPtoREAD(unsigned int vaddr);
 
 
 

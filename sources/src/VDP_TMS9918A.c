@@ -22,7 +22,7 @@ Features:
  
 ## History of versions:
 - v1.5 (11/12/2023) Update to SDCC (4.1.12) Z80 calling conventions
-					Added SetVRAMtoREAD and SetVRAMtoWRITE functions
+					Added SetVDPtoREAD and SetVDPtoWRITE functions
 					Added FastVPOKE and FastVPEEK functions
 					Added initialization of MULTICOLOR mode (in SCREEN function) 
 					with sorted map.
@@ -135,10 +135,10 @@ EXIT_SCR:
 
 
 
-; --------------------------------------------------------------
-; Writes in the color table, with the last values of the ink and
-; background indicated with the COLOR function
-; --------------------------------------------------------------
+/* --------------------------------------------------------------
+Writes in the color table, with the last values of the ink and
+background indicated with the COLOR function
+-------------------------------------------------------------- */
 initG1:
 	ld   A,(#BAKCLR)
 	ld   B,A 
@@ -151,14 +151,14 @@ initG1:
 	ld   DE,#32
 	ld   HL,#G1_COL
 	jp   fillVR			;fill color table with Ink+BG Colors
-; --------------------------------------------------------------
+// --------------------------------------------------------------
 
 
 
 
-; ==============================================================================
-; Screens data  
-  
+/* --------------------------------------------------------------
+Screens data  
+-------------------------------------------------------------- */
 ;Reg/Bit  7     6     5     4     3     2     1     0
 ;0        -     -     -     -     -     -     M3    EXTVID
 ;1        4/16K	BLK   GINT	M1    M2    -     SIZE  MAG
@@ -202,7 +202,7 @@ mode_MC:
  .db 0x00		;reg4 --
  .db 0x36		;reg5 Sprite Attribute Table (1B00h)
  .db 0x07		;reg6 Sprite Pattern Table   (3800h)  
-; ==============================================================================
+// --------------------------------------------------------------
 __endasm;
 } 
 
@@ -221,7 +221,7 @@ void SortG2map(void) __naked
 {
 __asm
 	ld   HL,#G2_MAP
-	call _SetVRAMtoWRITE
+	call _SetVDPtoWRITE
 	ld	 DE,#0x300
 	ld   C,#VDPVRAM
 	ld   B,#0
@@ -250,7 +250,7 @@ void SortMCmap(void) __naked
 {
 __asm
 	ld   HL,#MC_MAP
-	call _SetVRAMtoWRITE  ;init VDP to Write to BASE15 add ress
+	call _SetVDPtoWRITE  ;init VDP to Write to BASE15 add ress
 	
 	ld   B,#24
 	ld   C,#0  ;row
@@ -331,111 +331,6 @@ __endasm;
 
 
 
-
-
-/* =============================================================================
-ClearSprites
-Description: 
-		Initialises the sprite attribute table (OAM). 
-		The vertical location of the sprite is set to 209.
-Input:	-
-Output:	-
-============================================================================= */
-void ClearSprites(void) __naked
-{
-__asm
-  ld   HL,#BASE8
-  call _SetVRAMtoWRITE 
-
-  ld   B,#32
-loop_ClearOAM:
-  ld   A,#YHIDDEN    ;(8ts) 
-  out  (VDPVRAM),A   ;(12ts) (time for write 29 T-states)  (attr Y)
-  xor  A             ;(8ts)
-  nop                ;(5ts)
-  nop                ;(5ts)
-  out  (VDPVRAM),A   ;(attr X)
-  xor  A             ;(8ts) 12+8+5+5 = 30ts - It is not necessary but I add an Xor as a delay to reach 29 T-states (for TMS9918A)
-  ;inc  HL            ;(7ts) 12+7+5+5 = 29ts ???
-  nop
-  nop
-  out  (VDPVRAM),A   ;(attr pattern number) in the BIOS increase the value (* 4 in 16x16 sprites) 
-  xor  A
-  nop
-  nop
-  out  (VDPVRAM),A   ;(attr color)
-  djnz loop_ClearOAM   ;(14ts or 9ts if B=0)
- 
-  ret  
-__endasm;
-} 
-
-
-
-/* =============================================================================
-SetSpritesSize
-Description: 
-		Set size type for the sprites.
-Input:	[char] size: 0=8x8; 1=16x16
-Output:	-
-============================================================================= */  
-void SetSpritesSize(char size) __naked
-{
-size;	//A	
-__asm
-  
-  ld   HL,#RG0SAV+1 ; --- read vdp(1) from mem
-  ld   B,(HL)
-  
-  or   A
-  jr   Z,SPRsize8
-  
-  set  1,B ; 16x16
-  jr   setREG1
-  
-SPRsize8:
-  res  1,B  ; 8x8
-  jr   setREG1  
-  
-__endasm;
-} 
-
-
-
-/* =============================================================================
-SetSpritesZoom
-Description: 
-		Set zoom type for the sprites.
-Input:	[char] or [boolean]/[switcher] zoom: 0/false/OFF = x1; 1/true/ON = x2
-Output:	-
-============================================================================= */
-void SetSpritesZoom(char zoom) __naked
-{
-zoom;	//A	
-__asm
-  
-  ld   HL,#RG0SAV+1 ; --- read vdp(1) from mem
-  ld   B,(HL)
-
-  or   A
-  jr   Z,SPRnozoom
-  
-  set  0,B ; zoom
-  jr   setREG1
-  
-SPRnozoom:
-  res  0,B  ;nozoom    
-
-setREG1:  
-  ld   C,#0x01
-  ld   A,B  
-  jp   writeVDP
-
-__endasm;
-} 
-
-
-
 /* =============================================================================
 COLOR
 Description:
@@ -511,31 +406,24 @@ __endasm;
 VPOKE
 Description:
 		Writes a value to the video RAM. 
-		Warning!!	The order of the values has been reversed to optimize the 
-					function taking advantage of the new Z80 calling conventions.
-Input:	[char] value
-		[unsigned int] VRAM address
+Input:	[unsigned int] VRAM address
+		[char] value		
 Output:	- 
 ============================================================================= */
-void VPOKE(char value, unsigned int vaddr) __naked
+void VPOKE(unsigned int vaddr, char value)
 {
-value;	//A
-vaddr;	//DE
-
+vaddr;	//HL
+value;	//Stack
 __asm
-  ex   DE,HL
-  call _SetVRAMtoWRITE
-
-;===============================================================================
-; FastVPOKE                                
-; Function :	Writes a value to the next video RAM position. 
-;				Requires the VDP to be in write mode, either by previously 
-;				using VPOKE or SetVRAMtoWRITE functions.
-; Input    : A - value
-;===============================================================================	
-_FastVPOKE::  
-  out  (VDPVRAM),A  
-  ret
+	push IX
+	ld   IX,#0
+	add  IX,SP
+  
+	call _SetVDPtoWRITE
+	
+	ld   A,4(IX)
+	call _FastVPOKE
+	pop  IX
 __endasm;
 }
 
@@ -547,26 +435,57 @@ Description:
 		Reads a value from video RAM. 
 Input:	[unsigned int] VRAM address
 Output:	[char] value
-============================================================================= */ 
+============================================================================= */
 char VPEEK(unsigned int vaddr) __naked
 {
 vaddr;	//HL
 __asm	
 
-  call _SetVRAMtoREAD
+  call _SetVDPtoREAD
   
-;===============================================================================
-; FastVPEEK                                
-; Function :	Reads the next video RAM value.
-;				Requires the VDP to be in read mode, either by previously 
-;				using VPEEK or SetVRAMtoREAD functions.
-; Input    : --
-; Output   : A - value
-;===============================================================================  
+/* =============================================================================
+FastVPEEK                                
+Description:
+		Reads the next video RAM value.
+		Requires the VDP to be in read mode, either by previously 
+		using VPEEK or SetVDPtoREAD functions.
+Input    : --
+Output   : A - value
+============================================================================= */ 
 _FastVPEEK::  
   in   A,(VDPVRAM)
 
   ret 
+
+
+
+
+/* =============================================================================
+WriteByte2VRAM                                
+Description:
+		Writes a value to the video RAM. 
+Input:	HL - VRAM address
+		A - value
+Output:	-
+Regs:	C
+============================================================================= */
+WriteByte2VRAM::
+	ld   C,A
+	call _SetVDPtoWRITE
+	ld   A,C
+/* =============================================================================
+FastVPOKE                                
+Description:
+		Writes a value to the next video RAM position. 
+		Requires the VDP to be in write mode, either by previously 
+		using VPOKE or SetVDPtoWRITE functions.
+Input:	A - value
+Output:	-
+============================================================================= */
+_FastVPOKE::  
+	out  (VDPVRAM),A  
+	ret
+
 __endasm;
 } 
 
@@ -652,7 +571,7 @@ __asm
   ld   IX,#0
   add  IX,SP
   
-  ld   C,4(IX) ;length
+  ld   C,4(IX)	//length
   ld   B,5(IX)
     
   call GETBLOCKfromVRAM
@@ -675,11 +594,11 @@ char GetVDP(char reg) __naked
 {
 reg;	//A
 __asm 
-	ld   IY,#RG0SAV ;Mirror of VDP register 1
+	ld   HL,#RG0SAV		//Mirror of VDP register 1
 	ld   E,A
 	ld   D,#0
-	add  IY,DE
-	ld   A,(IY)
+	add  HL,DE
+	ld   A,(HL)
 	ret
 __endasm;		
 }
@@ -699,20 +618,22 @@ void SetVDP(char reg, char value) __naked
 reg;	//A
 value;	//L
 __asm      
-  ld   C,A ;reg
-  ld   A,L ;value
+  ld   C,A	//reg
+  ld   A,L	//value
   
 ;  jr   writeVDP
 ;----------------- END  
 
 
-;===============================================================================
-; writeVDP
-; Function : write data in the VDP-register  
-; Input    : A  - value to write
-;            C  - number of the register
-; Registers: IY, DE
-;===============================================================================
+/* =============================================================================
+writeVDP
+Description:
+		write data in the VDP-register  
+Input:	A  - value to write
+        C  - number of the register
+Output:	-
+Registers: IY, DE
+============================================================================= */
 writeVDP:
 
 	ld   IY,#RG0SAV
@@ -753,19 +674,22 @@ writeVDP:
 ;        # #
 ;         #
 
-;===============================================================================
-; fillVR                                
-; Function : Fill a large area of the VRAM of the same byte.
-; Input    : HL - VRAM address
-;            DE - Size
-;			 A - value
-;===============================================================================
+/* =============================================================================
+fillVR                                
+Description:
+		Fill a large area of the VRAM of the same byte.
+Input:	HL - VRAM address
+		DE - Size
+		A - value
+Output:	-
+Regs:	BC
+============================================================================= */
 fillVR::
   
 	ld   B,A
 	ld   C,#VDPVRAM
 
-	call _SetVRAMtoWRITE  
+	call _SetVDPtoWRITE  
       
 ;VFILL_loop:
 ;	out  (C),B			;(14ts)  14+7+5+5+13=44ts  (time for write 29 T-states)
@@ -787,16 +711,19 @@ VFILL_loop:
 	ret
 
 
-;===============================================================================
-; LDIR2VRAM
-; Function : Block transfer from memory to VRAM 
-; Input    : BC - blocklength
-;            DE - source Memory address
-;            HL - target VRAM address
-;===============================================================================
+/* =============================================================================
+LDIR2VRAM
+Description:
+		Block transfer from memory to VRAM 
+Input:	BC - blocklength
+		DE - source Memory address
+		HL - target VRAM address
+Output:	-
+Regs:	A
+============================================================================= */
 LDIR2VRAM::
 
-  call _SetVRAMtoWRITE
+  call _SetVDPtoWRITE
     
   ex   DE,HL
   
@@ -817,15 +744,18 @@ VWRITE_loop:
     
 
         
-;===============================================================================
-; GETBLOCKfromVRAM
-; Function : Block transfer from VRAM to memory.  
-; Input    : BC - blocklength
-;            HL - source VRAM address                     
-;            DE - target RAM address            
-;===============================================================================    
+/* =============================================================================
+GETBLOCKfromVRAM
+Description: 
+		Block transfer from VRAM to memory.  
+Input:	BC - blocklength
+		HL - source VRAM address                     
+		DE - target RAM address
+Output:	-
+Regs:	A        
+============================================================================= */
 GETBLOCKfromVRAM::
-  call _SetVRAMtoREAD
+  call _SetVDPtoREAD
   
   ex   DE,HL
   
@@ -835,7 +765,7 @@ GETBLOCKfromVRAM::
   ld   C,#VDPVRAM
     
 VREAD_loop:
-  ini           ;read value from C port, write in [HL] and INC HL
+  ini           //read value from C port, write in [HL] and INC HL
   
   dec  DE
   ld   A,D
@@ -849,17 +779,18 @@ __endasm;
 
 
 /* =============================================================================
-SetVRAMtoREAD
+SetVDPtoREAD
 Description:
 		Enable VDP to read (Similar to BIOS SETRD)
 Input:	[char] VRAM address
 Output:	-
+Regs:	A
 ============================================================================= */
-void SetVRAMtoREAD(unsigned int vaddr) __naked
+void SetVDPtoREAD(unsigned int vaddr) __naked
 {
 vaddr;	//HL
 __asm
-	push  AF
+//	push  AF
 	ld   A,L
 	di
 	out  (VDPSTATUS),A
@@ -867,7 +798,7 @@ __asm
 	and  #0x3F          ;bit6 = 0 --> read access
 	out  (VDPSTATUS),A 
 	ei
-	pop   AF
+//	pop   AF
 	ret
 __endasm;
 }
@@ -875,17 +806,18 @@ __endasm;
 
 
 /* =============================================================================
-SetVRAMtoWRITE
+SetVDPtoWRITE
 Description: 
 		Enable VDP to write (Similar to BIOS SETWRT)
 Input:	[char] VRAM address
-Output:	-             
+Output:	-
+Regs:	A             
 ============================================================================= */
-void SetVRAMtoWRITE(unsigned int vaddr) __naked
+void SetVDPtoWRITE(unsigned int vaddr) __naked
 {
 vaddr;	//HL
 __asm
-	push  AF
+//	push  AF
 	ld    A,L             ;first 8bits from VRAM ADDR
 	di
 	out   (VDPSTATUS),A
@@ -894,7 +826,234 @@ __asm
 	or    #0x40           ;bit6 = 1 --> write access
 	out   (VDPSTATUS),A
 	ei
-	pop   AF
+//	pop   AF
 	ret
 __endasm;
-}   
+}
+
+
+
+/* =============================================================================
+ClearSprites
+Description: 
+		Initialises the sprite attribute table (OAM). 
+		The vertical location of the sprite is set to 209.
+Input:	-
+Output:	-
+============================================================================= */
+void ClearSprites(void) __naked
+{
+__asm
+	ld   HL,#BASE8
+	call _SetVDPtoWRITE 
+
+	ld   B,#32
+loop_ClearOAM:
+	ld   A,#YHIDDEN    ;(8ts) 
+	out  (VDPVRAM),A   ;(12ts) (time for write 29 T-states)  (attr Y)
+	xor  A             ;(8ts)
+	nop                ;(5ts)
+	nop                ;(5ts)
+	out  (VDPVRAM),A   ;(attr X)
+	xor  A             ;(8ts) 12+8+5+5 = 30ts - It is not necessary but I add an Xor as a delay to reach 29 T-states (for TMS9918A)
+	;inc  HL            ;(7ts) 12+7+5+5 = 29ts ???
+	nop
+	nop
+	out  (VDPVRAM),A   ;(attr pattern number) in the BIOS increase the value (* 4 in 16x16 sprites) 
+	xor  A
+	nop
+	nop
+	out  (VDPVRAM),A   ;(attr color)
+	djnz loop_ClearOAM   ;(14ts or 9ts if B=0)
+
+	ret  
+__endasm;
+} 
+
+
+
+/* =============================================================================
+SetSpritesSize
+Description: 
+		Set size type for the sprites.
+Input:	[char] size: 0=8x8; 1=16x16
+Output:	-
+============================================================================= */  
+void SetSpritesSize(char size) __naked
+{
+size;	//A	
+__asm
+
+	ld   C,A
+	ld   A,(#RG0SAV+1)	//read vdp(1) from mem
+
+	bit  0,C	//IF size = 0 (8x8)?
+	jr   Z,SPRsize8	
+
+	set  1,B	//16x16
+	jr   SPRsetREG1
+  
+SPRsize8:
+	res  1,B	//8x8
+	jr   SPRsetREG1  
+  
+__endasm;
+} 
+
+
+
+/* =============================================================================
+SetSpritesZoom
+Description: 
+		Set zoom type for the sprites.
+Input:	[char] or [boolean]/[switcher] zoom: 0/false/OFF = x1; 1/true/ON = x2
+Output:	-
+============================================================================= */
+void SetSpritesZoom(char zoom) __naked
+{
+zoom;	//A	
+__asm
+  
+	ld   C,A
+	ld   A,(#RG0SAV+1)	//read vdp(1) from mem
+
+	bit  0,C	//IF zoom enable?
+	jr   Z,SPRnozoom
+
+	or   #1		//(8c)enable zoom	
+	jr   SPRsetREG1
+  
+SPRnozoom:
+	and   #0xFE	//(8c)disable zoom	
+
+SPRsetREG1:  
+	ld   C,#0x01
+	jp   writeVDP
+
+__endasm;
+} 
+
+
+/*void SetSpritesZoom(char zoom) __naked
+{
+zoom;	//A	
+__asm
+  
+	ld   HL,#RG0SAV+1	//read vdp(1) from mem
+	ld   B,(HL)
+
+	or   A
+	jr   Z,SPRnozoom
+
+	set  0,B	//zoom
+	jr   SPRsetREG1
+  
+SPRnozoom:
+	res  0,B	//(10c)no zoom
+
+SPRsetREG1:  
+	ld   C,#0x01
+	ld   A,B  
+	jp   writeVDP
+
+__endasm;
+}*/
+
+
+
+
+/* =============================================================================
+PUTSPRITE
+Description: 
+		Displays the sprite pattern.
+Input:	[char] sprite plane (0-31) 
+		[char] x 
+		[char] y
+		[char] color (0-15)
+		[char] pattern
+Output:	-
+============================================================================= */
+void PUTSPRITE(char plane, char x, char y, char color, char pattern)
+{
+plane;		//A
+x;			//L
+y;			//Stack
+color;		//Stack
+pattern;	//Stack
+__asm
+	push IX
+	ld   IX,#0
+	add  IX,SP
+  
+	ld   C,L		//x
+
+	call _GetSPRattrVADDR	//Input:A-plane; Output:HL-VRAM addr
+//	call _SetVDPtoWRITE		//VDP ready to write to VRAM
+
+	ld   A,4(IX)	//y
+	call WriteByte2VRAM
+
+	ld   A,C		//x
+	call _FastVPOKE ;WRTVRM
+
+
+	ld   C,6(IX)
+//Set sprite pattern number
+//Multiply * 4 when its a 16x16 sprite
+
+	call getSpritePattern	//Input:E -->Sprite pattern; Output:E
+	ld   A,E
+	call _FastVPOKE
+
+	ld   A,5(IX)	//color
+	call _FastVPOKE
+
+	pop  IX
+	
+__endasm;
+}
+
+
+
+/* =============================================================================
+GetSPRattrVADDR
+Description: 
+		Gets the VRAM address of the Sprite attributes of the specified plane
+		Same as MSX BIOS CALATR
+Input:	[char] [A] sprite plane (0-31) 
+Output:	[unsigned int] [HL] VRAM address
+============================================================================= */
+unsigned int GetSPRattrVADDR(char plane) __naked
+{
+plane;		//A
+__asm
+	SLA  A    //*2
+	SLA  A    //*2
+	ld   E,A
+	ld   D,#0
+	ld   HL,#SPR_OAM	//base 8/13/18 sprite attribute table
+	add  HL,DE
+	ret
+	
+/* =============================================================================
+GetSpritePattern
+Description: 
+		Returns the pattern value according to the Sprite size 
+		(multiplied by 4 when its 16x16).
+Input:	[E] sprite pattern 
+Output: [E] new pattern value
+============================================================================= */
+GetSpritePattern::
+
+	ld   A,(#RG0SAV+1) ; --- read vdp(1) from mem
+
+	bit  1,A        //Sprite size; 1=16x16
+	ret  NZ			//same value
+
+//if spritesize = 16x16 then E*4
+	SLA  E
+	SLA  E ;multiplica x4  
+	ret	
+	
+__endasm;
+}
