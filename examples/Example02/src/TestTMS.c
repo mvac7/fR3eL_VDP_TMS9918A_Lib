@@ -71,7 +71,7 @@ void testVpeekVpoke(void);
 
 void testSprites(void);
 void showSprites(char offset);
-void PUTSPRITE(char plane, char x, char y, char color, char pattern);
+//void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 char isSPRITE16px(void);
 
 //void ChangeVDPstatus(void);
@@ -309,6 +309,8 @@ uint vprint_addr;
 uint time;
 boolean VDPstatus;
 
+char tilesetBakup[1024];
+
 
 // ---------------------------------------------------------------------------- Functions
 
@@ -372,20 +374,20 @@ void DrawBox(char width, char height)
 	if (isTxtMode()) nextLine = 41-width;
 	else nextLine = 33-width;
 	
-	VPOKE(24,vprint_addr++);
+	VPOKE(vprint_addr++,24);
 	for(i=0;i<box_winside;i++) FastVPOKE(23);
 	FastVPOKE(25);
 	vprint_addr+=box_winside+nextLine;
 	
 	for(o=1;o<box_hinside;o++)
 	{		
-		VPOKE(22,vprint_addr++);
+		VPOKE(vprint_addr++,22);
 		for(i=0;i<box_winside;i++) FastVPOKE(32);
 		FastVPOKE(22);
 		vprint_addr+=box_winside+nextLine;
 	}		
 	
-	VPOKE(26,vprint_addr++);
+	VPOKE(vprint_addr++,26);
 	for(i=0;i<box_winside;i++) FastVPOKE(23);
 	FastVPOKE(27);	
 }
@@ -402,7 +404,7 @@ void DrawFillBox(char width, char height, char tile)
 		
 	for(o=0;o<height;o++)
 	{
-		SetVRAMtoWRITE(vprint_addr);
+		SetVDPtoWRITE(vprint_addr);
 		for(i=0;i<width;i++) FastVPOKE(tile);
 		vprint_addr+=width+nextLine;
 	}
@@ -474,7 +476,7 @@ void VLOCATE(char column, char line)
 
 void VPRINT(char* text)
 {
-	SetVRAMtoWRITE(vprint_addr);
+	SetVDPtoWRITE(vprint_addr);
 	while(*(text))
 	{
 		FastVPOKE(*(text++));
@@ -484,7 +486,7 @@ void VPRINT(char* text)
 
 
 
-void PUTSPRITE(char plane, char x, char y, char color, char pattern)
+/*void PUTSPRITE(char plane, char x, char y, char color, char pattern)
 {
 	uint vaddr = BASE8 + (plane *4);  //OAM = BASE8 = BASE13 
 
@@ -493,13 +495,14 @@ void PUTSPRITE(char plane, char x, char y, char color, char pattern)
 	if (isSPRITE16px()>0) pattern=pattern*4;
 	FastVPOKE(pattern);
 	FastVPOKE(color);  
-}
+}*/
 
 
 
 char isSPRITE16px(void)
 {
-	return PEEK(RG0SAV+1) & 2;
+	char A = *(unsigned int *) (RG0SAV+1);
+	return A & 2;
 }
 
 
@@ -702,7 +705,7 @@ void testSCREEN1(void)
 	VPRINT(" SCREEN 1");
 	WAIT(50);
 
-	SetVRAMtoWRITE(G1_MAP);
+	SetVDPtoWRITE(G1_MAP);
 	for(i=0;i<255;i++) FastVPOKE(i);
 	WAIT(100);
 
@@ -736,7 +739,7 @@ void testSCREEN2(void)
 	COLOR(0,14,1);    
 	SCREEN(2);
 
-	SetVRAMtoWRITE(BASE10);
+	SetVDPtoWRITE(BASE10);
 	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
 
 	VLOCATE(23,23);
@@ -747,7 +750,36 @@ void testSCREEN2(void)
 	HALT;
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12,128*8);
 	FillVRAM(BASE11,128*8,0x96);		//colors (Red)
-
+	
+	WAIT(50);
+	
+	//test CopyFromVRAM
+	VLOCATE(0,5);
+	VPRINT("Test CopyFromVRAM()");
+	//copy VRAM to RAM
+	CopyFromVRAM(BASE12,(uint) tilesetBakup,128*8);
+	WAIT(50);
+	
+	
+	//test CopyToVRAM 
+	VLOCATE(0,6);
+	VPRINT("Test CopyToVRAM BANK1");
+	//copy VRAM to RAM
+	CopyToVRAM((uint) tilesetBakup,BASE12+BANK1,128*8);
+	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
+	WAIT(50);
+	
+	//test CopyToVRAM 
+	VLOCATE(0,7);
+	VPRINT("Test CopyToVRAM BANK2");
+	//copy VRAM to RAM
+	CopyToVRAM((uint) tilesetBakup,BASE12+BANK2,128*8);
+	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
+	
+	WAIT(120);
+	
+	
+/*
 	//bank 1
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12+BANK1,128*8);
 	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
@@ -771,7 +803,7 @@ void testSCREEN2(void)
 	FillVRAM(BASE11+0x600,64*8,0xFE); //colors
 	WAIT(120);
 	//END CopyFromVRAM
-
+*/
 
 	//test fill VRAM  
 	testFill();
@@ -789,6 +821,9 @@ void testSCREEN2(void)
 	VLOCATE(12,11);
 	VPRINT(text10);
 	WAIT(150);*/
+	
+	FillVRAM(BASE12,0x1800,0x00);	//clear pattern data
+	FillVRAM(BASE11,0x1800,0xF4);	//clear color data
 }
 
 
@@ -821,7 +856,7 @@ void testSCREEN3(void)
 	SortMCmap();
 
 	value=0;
-	SetVRAMtoWRITE(BASE17);
+	SetVDPtoWRITE(BASE17);
 	//for(loop=0;loop<0x600;loop++)
 	for(loop=0;loop<192;loop++)
 	{
@@ -885,7 +920,7 @@ void testVpeekVpoke(void)
 	//test FastVPOKE
 	VLOCATE(0,0);
 	VPRINT("Test FastVPOKE:");
-	SetVRAMtoWRITE(BASE0+40);
+	SetVDPtoWRITE(BASE0+40);
 	for(i=0;i<255;i++) FastVPOKE(i);
 
 	WAIT(100);
@@ -898,7 +933,7 @@ void testVpeekVpoke(void)
 	{
 		HALT;
 		value = VPEEK(vaddr);
-		VPOKE(value,vaddr+(10*40));
+		VPOKE(vaddr+(10*40),value);
 		vaddr++;  
 	}
 

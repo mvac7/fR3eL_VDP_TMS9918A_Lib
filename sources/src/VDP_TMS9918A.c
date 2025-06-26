@@ -467,12 +467,12 @@ Description:
 Input:	HL - VRAM address
 		A - value
 Output:	-
-Regs:	C
+Regs:	A'
 ============================================================================= */
 WriteByte2VRAM::
-	ld   C,A
+	ex   AF,AF
 	call _SetVDPtoWRITE
-	ld   A,C
+	ex   AF,AF
 /* =============================================================================
 FastVPOKE                                
 Description:
@@ -574,7 +574,7 @@ __asm
   ld   C,4(IX)	//length
   ld   B,5(IX)
     
-  call GETBLOCKfromVRAM
+  call GetBLOCKfromVRAM
     
   pop  IX
 __endasm;
@@ -686,8 +686,7 @@ Regs:	BC
 ============================================================================= */
 fillVR::
   
-	ld   B,A
-	ld   C,#VDPVRAM
+	ld   C,A
 
 	call _SetVDPtoWRITE  
       
@@ -698,6 +697,9 @@ fillVR::
 ;	or   E				;(5ts)
 ;	jr   nz,VFILL_loop	;(13ts)
 ;	ret
+	
+	ld   A,C 
+	ld   C,#VDPVRAM
 	
     ld   B,E			; Number of loops is in DE
     dec  DE				; Calculate DB value (destroys B, D and E)
@@ -723,29 +725,40 @@ Regs:	A
 ============================================================================= */
 LDIR2VRAM::
 
-  call _SetVDPtoWRITE
-    
-  ex   DE,HL
-  
-  ld   D,B
-  ld   E,C
-        
-  ld   C,#VDPVRAM
-    
+	call _SetVDPtoWRITE
+
+	ex   DE,HL
+
+	ld   D,B
+	ld   E,C
+		
+	ld   C,#VDPVRAM
+/*    
 VWRITE_loop:
-  outi         ;out [c],[HL] + INC HL + dec B
+	outi         //out [c],[HL] + INC HL + dec B
+
+	dec  DE
+	ld   A,D
+	or   E
+	jr   nz,VWRITE_loop    
+
+	ret*/
   
-  dec  DE
-  ld   A,D
-  or   E
-  jr   nz,VWRITE_loop    
-  
-  ret   
+    ld   B,E			// Number of loops is in DE
+    dec  DE				// Calculate DB value (destroys B, D and E)
+    inc  D	
+VWRITE_loop:
+	outi				//(18ts) out [c],[HL] + INC HL + dec B
+    jp   NZ,VWRITE_loop	//(11ts) 29 T-States (18 + 11)
+	
+    dec  D
+    jr   NZ,VWRITE_loop
+	ret
     
 
         
 /* =============================================================================
-GETBLOCKfromVRAM
+GetBLOCKfromVRAM
 Description: 
 		Block transfer from VRAM to memory.  
 Input:	BC - blocklength
@@ -754,25 +767,38 @@ Input:	BC - blocklength
 Output:	-
 Regs:	A        
 ============================================================================= */
-GETBLOCKfromVRAM::
-  call _SetVDPtoREAD
-  
-  ex   DE,HL
-  
-  ld   D,B
-  ld   E,C
-  
-  ld   C,#VDPVRAM
-    
+GetBLOCKfromVRAM::
+	call _SetVDPtoREAD
+
+	ex   DE,HL
+
+	ld   D,B
+	ld   E,C
+
+	ld   C,#VDPVRAM
+
+    ld   B,E			// Number of loops is in DE
+    dec  DE				// Calculate DB value (destroys B, D and E)
+    inc  D	
 VREAD_loop:
-  ini           //read value from C port, write in [HL] and INC HL
-  
-  dec  DE
-  ld   A,D
-  or   E
-  jr   NZ,VREAD_loop    
-   
-  ret
+	ini           		//read value from C port, write in [HL] and INC HL
+    jp   NZ,VREAD_loop	//(11ts) 29 T-States (18 + 11)
+	
+    dec  D
+    jr   NZ,VREAD_loop
+	ret
+
+
+    /*
+VREAD_loop:
+	ini           //read value from C port, write in [HL] and INC HL
+
+	dec  DE
+	ld   A,D
+	or   E
+	jr   NZ,VREAD_loop    
+
+	ret*/
 __endasm;
 }   
 
@@ -833,6 +859,13 @@ __endasm;
 
 
 
+
+
+/* #############################################################################
+##                                                         SPRITE functions   ##
+################################################################################ */
+
+
 /* =============================================================================
 ClearSprites
 Description: 
@@ -848,22 +881,23 @@ __asm
 	call _SetVDPtoWRITE 
 
 	ld   B,#32
+	ld   C,#YHIDDEN
 loop_ClearOAM:
-	ld   A,#YHIDDEN    ;(8ts) 
-	out  (VDPVRAM),A   ;(12ts) (time for write 29 T-states)  (attr Y)
+	ld   A,C		   ;(5ts) 12+14+5= 31ts
+	out  (VDPVRAM),A   ;(12ts) attr Y (time for write 29 T-states)
 	xor  A             ;(8ts)
 	nop                ;(5ts)
 	nop                ;(5ts)
-	out  (VDPVRAM),A   ;(attr X)
+	out  (VDPVRAM),A   ;(12ts) attr X
 	xor  A             ;(8ts) 12+8+5+5 = 30ts - It is not necessary but I add an Xor as a delay to reach 29 T-states (for TMS9918A)
-	;inc  HL            ;(7ts) 12+7+5+5 = 29ts ???
+//inc  HL            ;(7ts) 12+7+5+5 = 29ts ???
 	nop
 	nop
-	out  (VDPVRAM),A   ;(attr pattern number) in the BIOS increase the value (* 4 in 16x16 sprites) 
+	out  (VDPVRAM),A   ;attr pattern number
 	xor  A
 	nop
 	nop
-	out  (VDPVRAM),A   ;(attr color)
+	out  (VDPVRAM),A   ;attr color
 	djnz loop_ClearOAM   ;(14ts or 9ts if B=0)
 
 	ret  
@@ -890,11 +924,13 @@ __asm
 	bit  0,C	//IF size = 0 (8x8)?
 	jr   Z,SPRsize8	
 
-	set  1,B	//16x16
+//	set  1,A	//16x16
+	or   #0b00000010
 	jr   SPRsetREG1
   
 SPRsize8:
-	res  1,B	//8x8
+//	res  1,A	//8x8
+	and  #0b11111101
 	jr   SPRsetREG1  
   
 __endasm;
@@ -920,11 +956,11 @@ __asm
 	bit  0,C	//IF zoom enable?
 	jr   Z,SPRnozoom
 
-	or   #1		//(8c)enable zoom	
+	or   #0b00000001		//(8c)enable zoom	
 	jr   SPRsetREG1
   
 SPRnozoom:
-	and   #0xFE	//(8c)disable zoom	
+	and   #0b11111110 		//(8c)disable zoom	
 
 SPRsetREG1:  
 	ld   C,#0x01
@@ -965,12 +1001,12 @@ __endasm;
 /* =============================================================================
 PUTSPRITE
 Description: 
-		Displays the sprite pattern.
+		Displays a Sprite on the screen.
 Input:	[char] sprite plane (0-31) 
-		[char] x 
-		[char] y
+		[char] X coordinate 
+		[char] Y coordinate
 		[char] color (0-15)
-		[char] pattern
+		[char] pattern number
 Output:	-
 ============================================================================= */
 void PUTSPRITE(char plane, char x, char y, char color, char pattern)
@@ -994,14 +1030,11 @@ __asm
 	call WriteByte2VRAM
 
 	ld   A,C		//x
-	call _FastVPOKE ;WRTVRM
+	call _FastVPOKE
 
 
-	ld   C,6(IX)
-//Set sprite pattern number
-//Multiply * 4 when its a 16x16 sprite
-
-	call getSpritePattern	//Input:E -->Sprite pattern; Output:E
+	ld   E,6(IX)	//pattern
+	call GetSpritePattern	//Input:E -->Sprite pattern; Output:E
 	ld   A,E
 	call _FastVPOKE
 
@@ -1048,7 +1081,7 @@ GetSpritePattern::
 	ld   A,(#RG0SAV+1) ; --- read vdp(1) from mem
 
 	bit  1,A        //Sprite size; 1=16x16
-	ret  NZ			//same value
+	ret  Z			//same value
 
 //if spritesize = 16x16 then E*4
 	SLA  E

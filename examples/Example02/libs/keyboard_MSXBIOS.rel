@@ -1,6 +1,6 @@
 XL3
 H 9 areas 4 global symbols
-M keyboard_MSXROM
+M keyboard_MSXBIOS
 O -mz80
 S .__.ABS. Def000000
 A _CODE size 9 flags 0 addr 0
