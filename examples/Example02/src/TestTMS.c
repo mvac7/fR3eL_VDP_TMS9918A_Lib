@@ -1,18 +1,19 @@
 /* =============================================================================
 # TestTMS
 
-Version: 1.3 (14/12/2023)
-Author: mvac7/303bcn
-Architecture: MSX
-Format: MSX ROM 8K
-Programming language: C and Z80 assembler
-Compiler: SDCC 4.4 or newer
+- Version: 1.4 (26/06/2025)
+- Author: mvac7/303bcn
+- Architecture: MSX
+- Format: MSX ROM 8K
+- Programming language: C and Z80 assembler
+- Compiler: SDCC 4.4 or newer
 
 ## Description:
-Test VDP TMS9918A MSX Library (fR3eL Project)
+Test VDP_TMS9918A MSX Library (fR3eL Project)
  
-## Histoy of versions:
-- v1.3 (14/12/2023)<Update to SDCC (4.1.12) Z80 calling conventions
+## Histoy of versions: (dd/mm/yyyy)
+- v1.4 (26/06/2025)<Add TestCLS
+- v1.3 (14/12/2023) Update to SDCC (4.1.12) Z80 calling conventions
 					Test FastVPOKE function
 - v1.2 (23/07/2019)
 - v1.1 ( 4/05/2019)   
@@ -82,7 +83,7 @@ char isSPRITE16px(void);
 
 
 // ---------------------------------------------------------------------------- Constants
-const char text01[] = "Test VDP TMS9918A Lib v1.5"; 
+const char text01[] = "Test VDP_TMS9918A Lib v1.5"; 
 
 const char textMENU[6][30] = {
 "[F1] Test TEXT1     (Screen0)",
@@ -304,7 +305,6 @@ const char SPRITE_DATA[]={
 
 
 // ---------------------------------------------------------------------------- Global Variables
-
 uint vprint_addr;
 uint time;
 boolean VDPstatus;
@@ -676,17 +676,6 @@ void testSCREEN0(void)
 	WAIT(100);
 	
 	testCLS();
-/*	FillVRAM(T1_MAP, 0x3C0, 9);	//character 9=circle
-	VLOCATE(0,0);
-	VPRINT(text10);		//">Test CLS() SCREEN 0");
-	TestClear(0);*/
-	
-/*	CLS();
-	WAIT(50);
-	
-	VLOCATE(14,11);
-	VPRINT(text10);
-	WAIT(150);*/
 }
 
 
@@ -722,10 +711,6 @@ void testSCREEN1(void)
 	WAIT(100);
 	
 	testCLS();
-/*	FillVRAM(G1_MAP, 0x300, 203);
-	VLOCATE(0,0);
-	VPRINT(text10);		//">Test CLS() SCREEN 1");
-	TestClear(1);*/
 }
 
 
@@ -832,9 +817,6 @@ void testSCREEN2(void)
 void testSCREEN3(void)
 {
 	char value=0;
-	//char i;
-	//char row;
-	//uint vaddr=BASE15;
 	char loop;
 	char loopLine;
 

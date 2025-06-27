@@ -1,7 +1,7 @@
 /* =============================================================================
 # TestTMS
 
-- Version: 1.5 (14/12/2023)
+- Version: 1.6 (27/06/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Format: .COM (MSX-DOS)
@@ -11,7 +11,8 @@
 ## Description:
 Test VDP TMS9918A MSX Library (fR3eL Project)
 
-## Histoy of versions:
+## Histoy of versions: (dd/mm/yyyy)
+- v1.6 (27/06/2025)<Add TestCLS
 - v1.5 (14/12/2023)<Update to SDCC (4.1.12) Z80 calling conventions
 					Test FastVPOKE function
 - v1.4 (23/07/2019)
@@ -70,24 +71,24 @@ void testSCREEN1(void);
 void testSCREEN2(void);
 void testSCREEN3(void);
 
+void testCLS(void);
+
 void testFill(void);
 void testVpeekVpoke(void);
 
 void testSprites(void);
 void showSprites(char offset);
-void PUTSPRITE(char plane, char x, char y, char color, char pattern);
-char isSPRITE16px(void);
 
 
 
 // ---------------------------------------------------------------------------- Constants
 const char text01[] = "Test VDP_TMS9918A Lib\n\r"; 
 
-const char textMENU[6][30] = {
-"[F1] Test Text mode (Screen0)",
-"[F2] Test G1 mode   (Screen1)",
-"[F3] Test G2 mode   (Screen2)",
-"[F4] Test MC mode   (Screen3)",
+const char textMENU[7][30] = {
+"[F1] Test TEXT1     (Screen0)",
+"[F2] Test GRAPHIC1  (Screen1)",
+"[F3] Test GRAPHIC2  (Screen2)",
+"[F4] Test MULTICOLOR(Screen3)",
 "[F5] Test Sprites            ",
 "[BS] Test COLOR()            ",
 "[ESC] Exit                   "};
@@ -303,6 +304,8 @@ const char SPRITE_DATA[]={
 uint vprint_addr;
 uint time;
 
+char tilesetBakup[1024];
+
 
 // ---------------------------------------------------------------------------- Functions
 
@@ -458,20 +461,20 @@ void DrawBox(char width, char height)
 	if (isTxtMode()) nextLine = 41-width;
 	else nextLine = 33-width;
 	
-	VPOKE(24,vprint_addr++);
+	VPOKE(vprint_addr++,24);
 	for(i=0;i<box_winside;i++) FastVPOKE(23);
 	FastVPOKE(25);
 	vprint_addr+=box_winside+nextLine;
 	
 	for(o=1;o<box_hinside;o++)
 	{		
-		VPOKE(22,vprint_addr++);
+		VPOKE(vprint_addr++,22);
 		for(i=0;i<box_winside;i++) FastVPOKE(32);
 		FastVPOKE(22);
 		vprint_addr+=box_winside+nextLine;
 	}		
 	
-	VPOKE(26,vprint_addr++);
+	VPOKE(vprint_addr++,26);
 	for(i=0;i<box_winside;i++) FastVPOKE(23);
 	FastVPOKE(27);	
 }
@@ -488,7 +491,7 @@ void DrawFillBox(char width, char height, char tile)
 		
 	for(o=0;o<height;o++)
 	{
-		SetVRAMtoWRITE(vprint_addr);
+		SetVDPtoWRITE(vprint_addr);
 		for(i=0;i<width;i++) FastVPOKE(tile);
 		vprint_addr+=width+nextLine;
 	}
@@ -594,7 +597,7 @@ void VLOCATE(char column, char line)
 
 void VPRINT(char* text)
 {
-	SetVRAMtoWRITE(vprint_addr);
+	SetVDPtoWRITE(vprint_addr);
 	while(*(text))
 	{
 		FastVPOKE(*(text++));
@@ -602,25 +605,6 @@ void VPRINT(char* text)
 	}
 }
 
-
-
-void PUTSPRITE(char plane, char x, char y, char color, char pattern)
-{
-	uint vaddr = BASE8 + (plane *4);  //OAM = BASE8 = BASE13 
-
-	VPOKE(y,vaddr);
-	FastVPOKE(x);
-	if (isSPRITE16px()>0) pattern=pattern*4;
-	FastVPOKE(pattern);
-	FastVPOKE(color);  
-}
-
-
-
-char isSPRITE16px(void)
-{
-	return PEEK(RG0SAV+1) & 2;
-}
 
 
 
@@ -656,11 +640,11 @@ void ShowMenu(void)
 		VPRINT(textMENU[i]);
 	}
 		
-	VLOCATE(1,20);
+	VLOCATE(1,18);
 	VPRINT("MSX version: ");
 	VPRINT(textVers[ReadBIOS(MSXVER)]); //(0=MSX1;1=MSX2;2=MSX2+;3=turboR)
 	
-	VLOCATE(1,21);
+	VLOCATE(1,19);
 	VPRINT("VDP V.Freq.: ");
 	VPRINT(textVFreq[GetVFrequency()]);
 	
@@ -790,13 +774,8 @@ void testSCREEN0(void)
 
 	testFill();
 	WAIT(100);
-
-	CLS();
-	WAIT(50);
 	
-	VLOCATE(14,11);
-	VPRINT(text10);
-	WAIT(150);  
+	testCLS();
 }
 
 
@@ -806,7 +785,7 @@ void testSCREEN1(void)
 {
 	char i;
 
-	COLOR(15,5,1);    
+	COLOR(1,14,5);    
 	SCREEN(1);
 
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,G1_PAT,128*8); 
@@ -815,7 +794,7 @@ void testSCREEN1(void)
 	VPRINT(" SCREEN 1");
 	WAIT(50);
 
-	SetVRAMtoWRITE(G1_MAP);
+	SetVDPtoWRITE(G1_MAP);
 	for(i=0;i<255;i++) FastVPOKE(i);
 	WAIT(100);
 
@@ -824,19 +803,14 @@ void testSCREEN1(void)
 	foreground, as in VDP register 7). The colors are assigned to the BG Tiles as
 	follows: Tiles 00..07 share the first color, tiles 08..0F share the second 
 	color, etc, and tiles F8..FF share the last color.*/
-	FillVRAM(G1_COL,32,0x47);
+	FillVRAM(G1_COL,32,0xF4);
 
 	WAIT(100);
 
 	testFill();
 	WAIT(100);
 	
-	CLS();
-	WAIT(50);
-	
-	VLOCATE(12,11);
-	VPRINT(text10);
-	WAIT(150);
+	testCLS();
 }
 
 
@@ -850,7 +824,7 @@ void testSCREEN2(void)
 	COLOR(0,14,1);    
 	SCREEN(2);
 
-	SetVRAMtoWRITE(BASE10);
+	SetVDPtoWRITE(BASE10);
 	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
 
 	VLOCATE(23,23);
@@ -861,42 +835,53 @@ void testSCREEN2(void)
 	HALT;
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12,128*8);
 	FillVRAM(BASE11,128*8,0x96);		//colors (Red)
-
-	//bank 1
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12+BANK1,128*8);
-	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
-
-	//bank 2
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12+BANK2,128*8);
-	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
+	
 	WAIT(50);
-	//END copy
-
-
+	
 	//test CopyFromVRAM
 	VLOCATE(0,5);
 	VPRINT("Test CopyFromVRAM()");
 	//copy VRAM to RAM
-	CopyFromVRAM(BASE12+(32*8),0xE000,64*8);
+	CopyFromVRAM(BASE12,(uint) tilesetBakup,128*8);
 	WAIT(50);
-
-	//copy RAM to VRAM
-	CopyToVRAM(0xE000,BASE12+0x600,64*8);   
-	FillVRAM(BASE11+0x600,64*8,0xFE); //colors
+	
+	
+	//test CopyToVRAM 
+	VLOCATE(0,6);
+	VPRINT("Test CopyToVRAM BANK1");
+	//copy VRAM to RAM
+	CopyToVRAM((uint) tilesetBakup,BASE12+BANK1,128*8);
+	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
+	WAIT(50);
+	
+	//test CopyToVRAM 
+	VLOCATE(0,7);
+	VPRINT("Test CopyToVRAM BANK2");
+	//copy VRAM to RAM
+	CopyToVRAM((uint) tilesetBakup,BASE12+BANK2,128*8);
+	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
+	
 	WAIT(120);
-	//END CopyFromVRAM
-
 
 	//test fill VRAM  
 	testFill();
 	WAIT(100);
 	
-	CLS();	
+	testCLS();
+/*	FillVRAM(G1_MAP, 0x300, 203);
+	VLOCATE(0,0);
+	VPRINT(text10);		//">Test CLS() SCREEN 1");
+	TestClear(1);*/
+	
+/*	CLS();
 	WAIT(100);
 	
 	VLOCATE(12,11);
 	VPRINT(text10);
-	WAIT(150);
+	WAIT(150);*/
+	
+	FillVRAM(BASE12,0x1800,0x00);	//clear pattern data
+	FillVRAM(BASE11,0x1800,0xF4);	//clear color data
 }
 
 
@@ -905,10 +890,8 @@ void testSCREEN2(void)
 void testSCREEN3(void)
 {
 	char value=0;
-	//char i;
-	//char row;
-	//uint vaddr=BASE15;
-	uint loop;
+	char loop;
+	char loopLine;
 
 	COLOR(0,4,CYAN);
 	SCREEN(1);
@@ -928,16 +911,54 @@ void testSCREEN3(void)
 	SortMCmap();
 
 	value=0;
-	SetVRAMtoWRITE(BASE17);
-	for(loop=0;loop<0x600;loop++)
+	SetVDPtoWRITE(BASE17);
+	//for(loop=0;loop<0x600;loop++)
+	for(loop=0;loop<192;loop++)
 	{
 		HALT;
-		FastVPOKE(value++);
+		for(loopLine=0;loopLine<8;loopLine++) FastVPOKE(value++);
 	}
 	//for(i=0;i<0x300;i++) VPOKE(BASE15+i,value++);  //name table in order
 
 	WAIT(100);
 	CLS();
+	WAIT(150);
+}
+
+
+
+void testCLS(void)
+{
+	unsigned int BC;
+	unsigned int vaddr;	
+	unsigned int vsize;
+	boolean testResult=true;
+	
+	if (isTxtMode()){
+		vaddr=T1_MAP;
+		vsize=0x3C0;
+	}else{
+		vaddr=G1_MAP;
+		vsize=0x300;
+	}
+	
+	FillVRAM(vaddr, vsize, 2);
+	VLOCATE(0,0);
+	VPRINT(text10);
+ 
+	WAIT(150);
+	
+	CLS();
+	WAIT(25);
+	
+	for(BC=0;BC<vsize;BC++) if(VPEEK(vaddr++)!=0) testResult=false;
+		
+	WAIT(25);
+	VLOCATE(0,0);
+	VPRINT(text10);
+	if(testResult==true) VPRINT("=Ok");
+	else VPRINT("=ERROR!");
+	
 	WAIT(150);
 }
 
@@ -954,7 +975,7 @@ void testVpeekVpoke(void)
 	//test FastVPOKE
 	VLOCATE(0,0);
 	VPRINT("Test FastVPOKE:");
-	SetVRAMtoWRITE(BASE0+40);
+	SetVDPtoWRITE(BASE0+40);
 	for(i=0;i<255;i++) FastVPOKE(i);
 
 	WAIT(100);
@@ -967,7 +988,7 @@ void testVpeekVpoke(void)
 	{
 		HALT;
 		value = VPEEK(vaddr);
-		VPOKE(value,vaddr+(10*40));
+		VPOKE(vaddr+(10*40),value);
 		vaddr++;  
 	}
 
