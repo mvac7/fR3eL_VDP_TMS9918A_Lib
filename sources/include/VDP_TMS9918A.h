@@ -291,7 +291,7 @@ extern char FastVPEEK(void);
 /* =============================================================================
 FillVRAM                               
 Description:
-		Fill a large area of the VRAM of the same byte.
+		Fill a large area of the VRAM of the same value.
 Input:	[unsigned int] VRAM address
 		[unsigned int] blocklength
 		[char] Value to fill.

@@ -463,16 +463,17 @@ _FastVPEEK::
 /* =============================================================================
 WriteByte2VRAM                                
 Description:
-		Writes a value to the video RAM. 
+		Writes a value to the video RAM. Same as VPOKE.
 Input:	HL - VRAM address
 		A - value
 Output:	-
 Regs:	A'
 ============================================================================= */
-WriteByte2VRAM::
+_WriteByte2VRAM::
 	ex   AF,AF
 	call _SetVDPtoWRITE
 	ex   AF,AF
+	
 /* =============================================================================
 FastVPOKE                                
 Description:
@@ -494,7 +495,7 @@ __endasm;
 /* =============================================================================
 FillVRAM                               
 Description:
-		Fill a large area of the VRAM of the same byte.
+		Fill a large area of the VRAM of the same value.
 Input:	[unsigned int] VRAM address
 		[unsigned int] blocklength
 		[char] Value to fill.
@@ -625,6 +626,7 @@ __asm
 ;----------------- END  
 
 
+
 /* =============================================================================
 writeVDP
 Description:
@@ -677,7 +679,7 @@ writeVDP:
 /* =============================================================================
 fillVR                                
 Description:
-		Fill a large area of the VRAM of the same byte.
+		Fill a large area of the VRAM of the same value.
 Input:	HL - VRAM address
 		DE - Size
 		A - value
@@ -1027,7 +1029,7 @@ __asm
 //	call _SetVDPtoWRITE		//VDP ready to write to VRAM
 
 	ld   A,4(IX)	//y
-	call WriteByte2VRAM
+	call _WriteByte2VRAM
 
 	ld   A,C		//x
 	call _FastVPOKE
@@ -1075,6 +1077,7 @@ Description:
 		(multiplied by 4 when its 16x16).
 Input:	[E] sprite pattern 
 Output: [E] new pattern value
+Regs:	A
 ============================================================================= */
 GetSpritePattern::
 
