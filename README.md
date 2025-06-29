@@ -41,12 +41,14 @@ Enjoy it!
 
 ## History of versions
 
-- v1.5 (11/12/2023) 
+- v1.5 (11 December 2023):
+	- Convert Assembler source code to C
 	- Update to SDCC (4.1.12) Z80 calling conventions
 	- Added SetVRAMtoREAD and SetVRAMtoWRITE functions
 	- Added FastVPOKE and FastVPEEK functions
 	- Added initialization of MC mode (in SCREEN function) with sorted map.
 	- The order of input values in the VPOKE function has been reversed to optimize the function by taking advantage of the new Z80 calling conventions.
+	- The FillVRAM, CopyToVRAM, and CopyFromVRAM functions have been optimized for faster access to VRAM.
 - v1.4 (16 August 2022) Bug #2 (initialize VRAM address in V9938) and code optimization 
 - v1.3 (23 July  2019) COLOR function improvements
 - v1.2 ( 4 May   2019) 
@@ -121,7 +123,7 @@ Enjoy it!
 
 | Label | Description | Input Regs. | Output Regs. | Affected Regs. |
 | ---   | ---         | ---         | ---          | ---            |
-| `WriteByte2VRAM` | Writes a value to the video RAM.<br/>Same as VPOKE. | HL - VRAM address<br/>A - value | --- | A' |
+| `_WriteByte2VRAM` | Writes a value to the video RAM.<br/>Same as VPOKE. | HL - VRAM address<br/>A - value | --- | A' |
 | `_SetVDPtoWRITE` | Enable VDP to write.<br/>Similar to BIOS SETWRT. | HL - VRAM address | --- | A |
 | `_FastVPOKE` | Writes a value to the next video RAM position. | A - value | --- | --- |
 | `_VPEEK` | Reads a value from VRAM | HL - VRAM address | A | --- |
@@ -139,18 +141,34 @@ Enjoy it!
 
 ## Notes about operation
 
-It is important to know that the SCREEN function does not behave exactly like 
-the functions of the BIOS with the same purpose (CHGMOD, INITXT, INIGRP, etc.).
-SCREEN does not clean the entire VRAM and does not set the patterns from the MSX font in text modes. 
-This function changes to the indicated screen mode, writes to the registers of the VDP the same configuration of the different tables used 
-in the MSX and fill the Name Table and the Sprite attribute table with the value 0 and the Y position for hiding (209).
+It's important to note that the SCREEN function doesn't behave like the BIOS functions with the same purpose (CHGMOD, INITXT, INIGRP, etc.). 
+This is because the graphics will be provided by the developer, and there's no need to duplicate this work.
 
-It is also necessary to know that in the case of graphic mode 2 (screen 2), the table of names will not be initialized, 
-with consecutive values (normally used to display a graphic without the use of repeated tiles).
+This function writes the same configuration of the different tables used in the MSX system to the VDP registers and fills the VRAM name table with the value 0.
 
-Due to the fact that the VDP registers can not be consulted, the writing of the values of these has been included in the system variables used by the MSX. 
-In the case of wanting to adapt this library to another computer, they would have to be deleted or placed in the memory area that is available.
+The sprite attribute table is also initialized with all values ​​set to 0 except for the Y position, which is set to a hide position (209).
 
-The colors of ink and background of the COLOR function are only useful in text mode, 
-since the BIOS uses these values to initialize the color table in the screen startup routines and this library does not. 
-In all other modes it is useful to adjust the border color of the screen.
+It doesn't set the MSX system font patterns in text modes (TEXT1 or GRAPHIC1). 
+You'll need to copy the tileset required for your program to VRAM.
+
+It's also important to note that, in GRAPHIC2 (Screen 2) and MULTICOLOR (Screen 3) modes, 
+the name table will not be initialized with consecutive values ​​(usually used to display a graphic without using repeated tiles). 
+For this case, you can use the SortG2map or SortMCmap functions.
+
+The ink and background colors of the COLOR function are only useful in text mode, as the BIOS uses these values ​​to initialize the color table for the other modes. 
+In all other modes, you can use this function to adjust the screen border color.
+
+Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
+If you want to adapt this library to another computer, you would need to remove it or move it to available memory.
+
+<br/>
+
+---
+
+## Documentation
+
+- Texas Instruments [TMS9918A application manual](http://map.grauw.nl/resources/video/texasinstruments_tms9918.pdf) `PDF`
+- Texas Instruments [VDP Programmer’s Guide](http://map.grauw.nl/resources/video/ti-vdp-programmers-guide.pdf) `PDF`
+- Texas Instruments [TMS9918A VDP](http://bifi.msxnet.org/msxnet/tech/tms9918a.txt) by Sean Young `TXT`
+- The MSX Red Book · [2 Video Display Processor](https://github.com/gseidler/The-MSX-Red-Book/blob/master/the_msx_red_book.md#chapter_2) `HTML`
+- YAMAHA [9938 Technical Data Book](http://map.grauw.nl/resources/video/v9938/v9938.xhtml) `HTML`

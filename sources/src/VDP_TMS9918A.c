@@ -21,12 +21,14 @@ Features:
 - Save VDP registers values in MSX System variables	
  
 ## History of versions:
-- v1.5 (11/12/2023) Update to SDCC (4.1.12) Z80 calling conventions
+- v1.5 (11/12/2023) Convert Assembler source code to C
+					Update to SDCC (4.1.12) Z80 calling conventions
 					Added SetVDPtoREAD and SetVDPtoWRITE functions
 					Added FastVPOKE and FastVPEEK functions
 					Added initialization of MULTICOLOR mode (in SCREEN function) 
 					with sorted map.
-					Convert Assembler source code to C
+					The FillVRAM, CopyToVRAM, and CopyFromVRAM functions 
+					have been optimized for faster access to VRAM.
 - v1.4 (16/08/2022) Bug#2 (init VRAM addr in V9938) and code optimization 
 - v1.3 (23/07/2019) COLOR function improvements
 - v1.2 (04/05/2019)
