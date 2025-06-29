@@ -1059,6 +1059,7 @@ Description:
 		Same as MSX BIOS CALATR
 Input:	[char] [A] sprite plane (0-31) 
 Output:	[unsigned int] [HL] VRAM address
+Regs.:	[DE]
 ============================================================================= */
 unsigned int GetSPRattrVADDR(char plane) __naked
 {
