@@ -99,41 +99,43 @@ Enjoy it!
 | FastVPOKE      | `FastVPOKE(char value)`     | ---    | Writes a value to the next video RAM position |
 | VPEEK          | `VPEEK(unsigned int vaddr)` | `char` | Reads a value from VRAM |
 | FastVPEEK      | `FastVPEEK(char value)`     | `char` | Reads the next video RAM value |
-| FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int length, char value)` | --- | Fill a large area of the VRAM of the same value |
-| CopyToVRAM     | `CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int length)` | --- | Block transfer from memory to VRAM    |
-| CopyFromVRAM   | `CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int length)` | --- | Block transfer from VRAM to memory  |
+| FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int size, char value)` | --- | Fill a large area of the VRAM of the same value |
+| CopyToVRAM     | `CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size)` | --- | Block transfer from memory to VRAM    |
+| CopyFromVRAM   | `CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size)` | --- | Block transfer from VRAM to memory  |
 | SetVDPtoREAD   | `SetVDPtoREAD(unsigned int vaddr)`  | --- | Enable VDP to read (Similar to BIOS SETRD)   |
 | SetVDPtoWRITE  | `SetVDPtoWRITE(unsigned int vaddr)` | --- | Enable VDP to write (Similar to BIOS SETWRT) |
 
 <br/>
 
-### Sprites
+### Access to Sprites
 
 | Name | Declaration | Output | Description |
 | ---  | ---         | ---    | ---         |
-| ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) and Sprite Pattern Table |
 | SetSpritesSize  | `SetSpritesSize(char size)` | --- | Set size type for the sprites |
 | SetSpritesZoom  | `SetSpritesZoom(char zoom)` | --- | Set zoom type for the sprites |
+| ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) and Sprite Pattern Table |
 | PUTSPRITE       | `PUTSPRITE(char plane, char x, char y, char color, char pattern)` | --- | Displays a sprite |
 | GetSPRattrVADDR | `GetSPRattrVADDR(char plane)` | `unsigned int` | Gets the VRAM address of the Sprite attributes of the specified plane |
 
 <br/>
 
-### Functions only accessible from inline assembler
+### Inline assembler
 
 | Label | Description | Input Regs. | Output Regs. | Affected Regs. |
 | ---   | ---         | ---         | ---          | ---            |
-| `_WriteByte2VRAM` | Writes a value to the video RAM.<br/>Same as VPOKE. | `HL` VRAM address<br/>A - value | --- | `A'` |
-| `_SetVDPtoWRITE`  | Enable VDP to write.<br/>Similar to BIOS SETWRT. | `HL` VRAM address | --- | `A` |
-| `_FastVPOKE` | Writes a value to the next video RAM position. | `A` value | --- | --- |
-| `_VPEEK`     | Reads a value from VRAM | `HL` VRAM address | `A` | --- |
-| `_SetVDPtoREAD` | Enable VDP to read.<br/>Similar to BIOS SETRD. | `HL` VRAM address | --- | `A` |
-| `_FastVPEEK` | Reads the next video RAM value. | --- | `A` | --- |
-| `_fillVR`    | Fill a large area of the VRAM of the same value | `HL` VRAM address<br/>`DE` Size<br/>`A` value | --- | `BC` |
-| `_LDIR2VRAM` | Block transfer from memory to VRAM | `BC` blocklength<br/>`DE` source Memory address<br/>`HL` target VRAM address | --- | `A` |
-| `_GetBLOCKfromVRAM` | Block transfer from VRAM to memory | `BC` blocklength<br/>`HL` source VRAM address<br/>`DE` target RAM address | --- | `A` |
+| `readVDP`   | Provides the mirror value of a VDP register stored in system variables | `A` register number (0-7) | `A` value | `HL`, `DE` |
+| `writeVDP`  | Writes a value to VDP register | `A` - value<br/>`C` - register number (0-7) | --- | `IY`, `DE` |
+| `_SetVDPtoWRITE`    | Enable VDP to write.<br/>Similar to BIOS SETWRT. | `HL` VRAM address | --- | `A` |
+| `_SetVDPtoREAD`     | Enable VDP to read.<br/>Similar to BIOS SETRD. | `HL` VRAM address | --- | `A` |
+| `_WriteByteToVRAM`  | Writes a value to the video RAM.<br/>Same as VPOKE. | `HL` VRAM address<br/>`A` - value | --- | `A'` |
+| `_FastVPOKE`        | Writes a value to the last position in video RAM and increments it. | `A` value | --- | --- |
+| `_ReadByteFromVRAM` | Reads a value from VRAM | `HL` VRAM address | `A` | --- |
+| `_FastVPEEK`        | Reads the next video RAM value. | --- | `A` | --- |
+| `fillVR`            | Fill a large area of the VRAM of the same value | `HL` VRAM address<br/>`DE` Size<br/>`A` value | --- | `BC` |
+| `LDIR2VRAM`         | Block transfer from memory to VRAM | `BC` blocklength<br/>`DE` source Memory address<br/>`HL` target VRAM address | --- | `A` |
+| `GetBLOCKfromVRAM`  | Block transfer from VRAM to memory | `BC` blocklength<br/>`HL` source VRAM address<br/>`DE` target RAM address | --- | `A` |
 | `_GetSPRattrVADDR`  | Gets the VRAM address of the Sprite attributes of the specified plane | `A` sprite plane (0-31) | `HL` VRAM address | `DE` |
-| `_GetSpritePattern` | Returns the pattern value according to the Sprite size | `E` sprite pattern | `E` new pattern value | `A` |
+| `GetSpritePattern`  | Returns the pattern value according to the Sprite size | `E` sprite pattern | `E` pattern position | `A` |
 
 <br/>
 

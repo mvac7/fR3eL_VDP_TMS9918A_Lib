@@ -20,7 +20,7 @@ Features:
 - Uses the memory settings of the display modes set in MSX computers System
 - Save VDP registers values in MSX System variables	
  
-## History of versions:
+## History of versions (dd/mm/yyyy):
 - v1.5 (11/12/2023) Convert Assembler source code to C
 					Update to SDCC (4.1.12) Z80 calling conventions
 					Added SetVDPtoREAD and SetVDPtoWRITE functions
@@ -41,7 +41,7 @@ Features:
 #include "../include/VDP_TMS9918A.h"
 
 
-#define YHIDDEN 0xD1  // position to hide sprites by placing them outside the screen boundaries in TMS9918A modes
+
 
 
 
@@ -70,52 +70,52 @@ __asm
 
 ;  ld   A,4(IX)
 	cp   #1
-	jr   Z,$screen1
+	jr   Z,TMS_screen1$
 	cp   #2
-	jr   Z,$screen2
+	jr   Z,TMS_screen2$
 	cp   #3
-	jr   Z,$screen3
+	jr   Z,TMS_screen3$
   
-;screen 0  
-	call ClearT1mode
+//TMS_screen0 :
+	call ClearT1
 
 	ld   HL,#mode_TXT1
 	;screen 0 > 40 columns mode
 	ld   A,#39  ;default value
 	ld   (#LINL40),A 
 
-	jr  $setREGs 
+	jr  TMS_setREGs$
 
-$screen1:
-	call initG1
+TMS_screen1$:
+	call TMS_initG1$
 	call ClearG1G2
 	call _ClearSprites    
 	ld   HL,#mode_GFX1
-	jr  $setREGs
+	jr  TMS_setREGs$
   
-$screen3:
+TMS_screen3$:
 	;call _SortMCmap	;Not in this universe
 	call ClearMC
 	call _ClearSprites  
 	ld   HL,#mode_MC
-	jr  $setREGs  
+	jr  TMS_setREGs$  
 
-$screen2:
+TMS_screen2$:
 	;call _SortG2map	;Not in this universe
 	call ClearG1G2
 	call _ClearSprites      
 	ld   HL,#mode_GFX2
 
 
-$setREGs:
+TMS_setREGs$:
 	ld   B,#7
 	ld   C,#0
-loopREGs:
+TMS_REGSloop$:
 	ld   A,(HL)
 	call writeVDP
 	inc  HL
 	inc  C
-	djnz  loopREGs
+	djnz  TMS_REGSloop$
   
 ;initialize VRAM access on MSX2 or higher (V9938)
 	LD    HL,#MSXID3
@@ -123,7 +123,7 @@ loopREGs:
 	CALL  0x000C                 ;RDSLTReads the value of an address in another slot
 	EI
 	or   A   
-	jr   Z,EXIT_SCR
+	jr   Z,TMS_screenEND$
   
 ;clear upper bits (A14,A15,A16) from VRAM address for only acces to first 16k
 	xor  A
@@ -131,8 +131,8 @@ loopREGs:
 	ld   A,#14+128       ;V9938 reg 14 - Control Register
 	out  (VDPSTATUS),A
   
-EXIT_SCR: 
-	pop ix
+TMS_screenEND$: 
+	pop  IX
 	ret
 
 
@@ -141,7 +141,7 @@ EXIT_SCR:
 Writes in the color table, with the last values of the ink and
 background indicated with the COLOR function
 -------------------------------------------------------------- */
-initG1:
+TMS_initG1$:
 	ld   A,(#BAKCLR)
 	ld   B,A 
 	ld   A,(#FORCLR)
@@ -169,9 +169,9 @@ Screens data
 mode_TXT1:
  .db 0B00000000 ;reg0 $00 
  .db 0B11110000 ;reg1 $F0 
- .db 0x00		;reg2 Name Table              (0000h)
+ .db 0x00		;reg2 Name Table             (0000h)
  .db 0x00		;reg3 --
- .db 0x01		;reg4 Pattern Table           (0800h)
+ .db 0x01		;reg4 Pattern Table          (0800h)
  .db 0x00		;reg5 --
  .db 0x00		;reg6 --
 
@@ -189,11 +189,11 @@ mode_GFX1:
 mode_GFX2:
  .db 0B00000010 ;reg0
  .db 0B11100000 ;reg1 Default sprites 8x8 No Zoom
- .db 0x06  ;reg2 Name Table             (1800h)
- .db 0xFF  ;reg3 Color Table            (2000h)
- .db 0x03  ;reg4 Pattern Table          (0000h)
- .db 0x36  ;reg5 Sprite Attribute Table (1B00h)
- .db 0x07  ;reg6 Sprite Pattern Table   (3800h)
+ .db 0x06  ;reg2 Name Table				     (1800h)
+ .db 0xFF  ;reg3 Color Table                 (2000h)
+ .db 0x03  ;reg4 Pattern Table               (0000h)
+ .db 0x36  ;reg5 Sprite Attribute Table      (1B00h)
+ .db 0x07  ;reg6 Sprite Pattern Table        (3800h)
 
 ; M1=0; M2=1; M3=0
 mode_MC:
@@ -224,17 +224,31 @@ void SortG2map(void) __naked
 __asm
 	ld   HL,#G2_MAP
 	call _SetVDPtoWRITE
+	ld	 DE,#0x0300
+	xor  A
+TMSinitG2_loop$:
+	out  (VDPVRAM),A
+	inc  A
+	dec  E
+	jp   NZ,TMSinitG2_loop$
+	dec  D
+	jp   NZ,TMSinitG2_loop$
+	ret	
+	
+/*
+	ld   HL,#G2_MAP
+	call _SetVDPtoWRITE
 	ld	 DE,#0x300
 	ld   C,#VDPVRAM
-	ld   B,#0
-$initG2_loop:
-	out  (C),B
+	ld   A,#0
+TMSinitG2_loop$:
+	out  (C),B	
 	dec  DE
 	inc  B
 	ld   A,D
 	or   E
-	jr   NZ,$initG2_loop
-	ret	
+	jr   NZ,TMSinitG2_loop$
+	ret	*/
 __endasm;	
 }
 
@@ -252,31 +266,30 @@ void SortMCmap(void) __naked
 {
 __asm
 	ld   HL,#MC_MAP
-	call _SetVDPtoWRITE  ;init VDP to Write to BASE15 add ress
+	call _SetVDPtoWRITE  //init VDP to Write to BASE15
 	
-	ld   B,#24
-	ld   C,#0  ;row
-$loopRow:	
-	push BC
+	ld   C,#0	//row
+	ld   D,#24
+TMS_ROWloop$:	
 	ld   A,C
 	
 	SRL  A 
-	SRL  A	;row/4
+	SRL  A		//row/4
 	SLA  A
 	SLA  A
 	SLA  A
 	SLA  A
-	SLA  A	;row*32
+	SLA  A		//row*32
 	
 	ld   B,#32
-$loopPrintRow:
+TMS_printROWloop$:
 	out  (VDPVRAM),A
 	inc  A
-	djnz $loopPrintRow
+	djnz TMS_printROWloop$
 	
-	pop  BC
 	inc  C
-	djnz $loopRow
+	dec  D
+	jp   NZ,TMS_ROWloop$
 		
 	ret
 __endasm;	
@@ -292,7 +305,6 @@ Description:
 		 Clear Screen
 		 Fill the Name Table with the value 0
 		 Does not clear the sprite attribute table (OAM)
-		 
 Input:	-
 Output:	-
 ============================================================================= */
@@ -302,29 +314,29 @@ __asm
 
 	ld   A,(#RG0SAV+1)	;reg1
 	bit  4,A			;M1=1 Text-1 (T1)
-	jr   NZ,ClearT1mode
+	jr   NZ,ClearT1
 	bit  3,A			;M2=1 Multi Colour (MC)
 	jr   NZ,ClearMC
 
-;	ld   A,(#RG0SAV)	;reg0  
-;	bit  1,A			;M3=1 G2
-;	jr   NZ,ClearG2
+//	ld   A,(#RG0SAV)	;reg0  
+//	bit  1,A			;M3=1 G2
+//	jr   NZ,ClearG2
 
-ClearG1G2:
+ClearG1G2::
 	xor  A
-	ld   DE,#0x300		;32*24
+	ld   DE,#0x300		//32*24
 	ld   HL,#G1_MAP
 	jp   fillVR
   
-ClearMC:
+ClearMC::
 	xor  A
-	ld   DE,#0x300		;32*24 (2x2 blocks)
-	ld   HL,#MC_MAP		;Name Table
+	ld   DE,#0x300		//32*24 (2x2 blocks)
+	ld   HL,#MC_MAP		//Name Table
 	jp   fillVR
   
-ClearT1mode:
+ClearT1::
 	xor  A
-	ld   DE,#0x3C0		;40*24
+	ld   DE,#0x3C0		//40*24
 	ld   HL,#T1_MAP
 	jp   fillVR
   
@@ -355,49 +367,49 @@ ink;		//A
 background;	//L
 border;		//STack
 __asm
-  push IX
-  ld   IX,#0
-  add  IX,SP
+	push IX
+	ld   IX,#0
+	add  IX,SP
 
 ;save values in system vars
-  ld   (#FORCLR),A		;ink color (foreground) 
-  ld   A,L
-  ld   (#BAKCLR),A		;background color
-  ld   A,4(IX)  
-  ld   (#BDRCLR),A		;border color
+	ld   (#FORCLR),A		//ink color (foreground) 
+	ld   A,L
+	ld   (#BAKCLR),A		//background color
+	ld   A,4(IX)  
+	ld   (#BDRCLR),A		//border color
 
-  ld   A,(#RG0SAV+1)	;reads the last value of register 1 of the VDP in the system variables
-  bit  4,A				;M1=1   IF screen0?
-  jr   NZ,colorMode0
-  
-  ld   A,(#BDRCLR)
-  ld   B,A  
-  ld   A,(#BAKCLR)
-  jr   SAVEcolorREG
+	ld   A,(#RG0SAV+1)		//reads the last value of register 1 of the VDP in the system variables
+	bit  4,A				//M1=1   IF screen0?
+	jr   NZ,TMS_colorMode0$
 
-colorMode0:
-  ld   A,(#BAKCLR)
-  ld   B,A 
-  ld   A,(#FORCLR)
+	ld   A,(#BDRCLR)
+	ld   B,A  
+	ld   A,(#BAKCLR)
+	jr   TMS_SAVEcolorREG$
 
-SAVEcolorREG:
-  sla  A
-  sla  A
-  sla  A
-  sla  A
-  or   B
+TMS_colorMode0$:
+	ld   A,(#BAKCLR)
+	ld   B,A 
+	ld   A,(#FORCLR)
 
-  
-;(info by Portar Doc)
-;Register 7: colour register.
-;  Bit  Name  Expl.
-;  0-3  TC0-3 Background colour in SCREEN 0 (also border colour in SCREEN 1-3)
-;  4-7  BD0-3 Foreground colour in SCREEN 0      
-  
-  ld   C,#0x07	;VDP reg 7
-  call writeVDP
-   
-  pop  IX
+TMS_SAVEcolorREG$:
+	sla  A
+	sla  A
+	sla  A
+	sla  A
+	or   B
+
+/* --------------------------------------------------------------------------  
+(info by Portar Doc)
+Register 7: colour register.
+  Bit  Name  Expl.
+  0-3  TC0-3 Background colour in SCREEN 0 (also border colour in SCREEN 1-3)
+  4-7  BD0-3 Foreground colour in SCREEN 0      
+-------------------------------------------------------------------------- */  
+	ld   C,#0x07	//VDP reg 7
+	call writeVDP
+
+	pop  IX
   
 __endasm;
 } 
@@ -443,27 +455,39 @@ char VPEEK(unsigned int vaddr) __naked
 vaddr;	//HL
 __asm	
 
-  call _SetVDPtoREAD
+
+/* =============================================================================
+ReadByteFromVRAM                                
+Description:
+		Reads a value from video RAM.
+Input:	HL - VRAM address
+Output:	A - value
+Regs:	-
+============================================================================= */
+ReadByteFromVRAM::
+	call _SetVDPtoREAD
   
 /* =============================================================================
 FastVPEEK                                
 Description:
-		Reads the next video RAM value.
-		Requires the VDP to be in read mode, either by previously 
-		using VPEEK or SetVDPtoREAD functions.
+		Reads the value from the last position in video RAM and increments it.
+		This is a fast way to read consecutive values ​​from VRAM.
+		It requires the VDP to be in read mode, using the SetVDPtoREAD or VPEEK 
+		function at the beginning of the sequence.
 Input    : --
 Output   : A - value
+Regs:	-
 ============================================================================= */ 
 _FastVPEEK::  
-  in   A,(VDPVRAM)
+	in   A,(VDPVRAM)
 
-  ret 
+	ret 
 
 
 
 
 /* =============================================================================
-WriteByte2VRAM                                
+WriteByteToVRAM                                
 Description:
 		Writes a value to the video RAM. Same as VPOKE.
 Input:	HL - VRAM address
@@ -471,7 +495,7 @@ Input:	HL - VRAM address
 Output:	-
 Regs:	A'
 ============================================================================= */
-_WriteByte2VRAM::
+WriteByteToVRAM::
 	ex   AF,AF
 	call _SetVDPtoWRITE
 	ex   AF,AF
@@ -479,9 +503,10 @@ _WriteByte2VRAM::
 /* =============================================================================
 FastVPOKE                                
 Description:
-		Writes a value to the next video RAM position. 
-		Requires the VDP to be in write mode, either by previously 
-		using VPOKE or SetVDPtoWRITE functions.
+		Writes a value to the last position in video RAM and increments it.
+		This is a fast way to write consecutive values ​​to VRAM.
+		Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE 
+		function at the beginning of the sequence.
 Input:	A - value
 Output:	-
 ============================================================================= */
@@ -499,25 +524,25 @@ FillVRAM
 Description:
 		Fill a large area of the VRAM of the same value.
 Input:	[unsigned int] VRAM address
-		[unsigned int] blocklength
-		[char] Value to fill.
+		[unsigned int] block size
+		[char] Value to fill
 Output:	- 
 ============================================================================= */
-void FillVRAM(unsigned int vaddr, unsigned int length, char value)
+void FillVRAM(unsigned int vaddr, unsigned int size, char value)
 {
-vaddr;  //HL
-length; //DE
-value;  //STack
+vaddr;	//HL
+size;	//DE
+value;	//STack
 __asm
-  push IX
-  ld   IX,#0
-  add  IX,SP
-    
-  ld   A,4(IX) ;value
-  
-  call fillVR
-    
-  pop  IX
+	push IX
+	ld   IX,#0
+	add  IX,SP
+
+	ld   A,4(IX) ;value
+
+	call fillVR
+
+	pop  IX
 __endasm;
 } 
 
@@ -529,27 +554,27 @@ Description:
 		Block transfer from memory to VRAM 
 Input:	[unsigned int] Memory address
 		[unsigned int] VRAM address
-		[unsigned int] blocklength
+		[unsigned int] block size
 Output:	- 
 ============================================================================= */
-void CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int length)
+void CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size)
 {
 addr;	//HL
 vaddr;	//DE
-length;	//STack
+size;	//STack
 __asm
-  push IX
-  ld   IX,#0
-  add  IX,SP  
+	push IX
+	ld   IX,#0
+	add  IX,SP  
 
-  ex   DE,HL
-  
-  ld   C,4(IX) ;length
-  ld   B,5(IX)
-  
-  call LDIR2VRAM
-  
-  pop  IX
+	ex   DE,HL
+
+	ld   C,4(IX)	//size
+	ld   B,5(IX)
+
+	call LDIR2VRAM
+
+	pop  IX
 __endasm;
 } 
 
@@ -561,14 +586,14 @@ Description:
 		Block transfer from VRAM to memory
 Input:	[unsigned int] VRAM address                     
 		[unsigned int] RAM address
-		[unsigned int] blocklength
+		[unsigned int] block size
 Output:	-
 ============================================================================= */
-void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int length)
+void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size)
 {
 vaddr;	//HL
 addr;	//DE
-length;	//STack
+size;	//STack
 __asm
   push IX
   ld   IX,#0
@@ -590,13 +615,16 @@ GetVDP
 Description:
 		Provides the mirror value of a VDP register stored in system 
 		variables.
-Input:	[char] VDP register              
-Output:	[char] Value
+		Use readVDP in assembler inline
+Input:	[char]/[A] register number (0-7)           
+Output:	[char]/[A] value
+Regs:	HL,DE
 ============================================================================= */
 char GetVDP(char reg) __naked
 {
 reg;	//A
-__asm 
+__asm
+readVDP::
 	ld   HL,#RG0SAV		//Mirror of VDP register 1
 	ld   E,A
 	ld   D,#0
@@ -611,8 +639,8 @@ __endasm;
 /* =============================================================================
 SetVDP
 Description:
-		Writes a value to a VDP register
-Input:	[char] VDP register (0-7)                    
+		Writes a value to VDP register
+Input:	[char] register number (0-7)                    
 		[char] value
 Output:	-
 ============================================================================= */
@@ -621,24 +649,20 @@ void SetVDP(char reg, char value) __naked
 reg;	//A
 value;	//L
 __asm      
-  ld   C,A	//reg
-  ld   A,L	//value
+	ld   C,A	//reg
+	ld   A,L	//value
   
-;  jr   writeVDP
-;----------------- END  
-
-
 
 /* =============================================================================
 writeVDP
 Description:
-		write data in the VDP-register  
-Input:	A  - value to write
-        C  - number of the register
+		Writes a value to VDP register
+Input:	A  - value
+        C  - register number (0-7) 
 Output:	-
 Registers: IY, DE
 ============================================================================= */
-writeVDP:
+writeVDP::
 
 	ld   IY,#RG0SAV
 	ld   E,C
@@ -684,7 +708,7 @@ Description:
 		Fill a large area of the VRAM of the same value.
 Input:	HL - VRAM address
 		DE - Size
-		A - value
+		A  - value
 Output:	-
 Regs:	BC
 ============================================================================= */
@@ -694,26 +718,18 @@ fillVR::
 
 	call _SetVDPtoWRITE  
       
-;VFILL_loop:
-;	out  (C),B			;(14ts)  14+7+5+5+13=44ts  (time for write 29 T-states)
-;	dec  DE				;(7ts)
-;	ld   A,D			;(5ts)
-;	or   E				;(5ts)
-;	jr   nz,VFILL_loop	;(13ts)
-;	ret
-	
 	ld   A,C 
 	ld   C,#VDPVRAM
 	
-    ld   B,E			; Number of loops is in DE
-    dec  DE				; Calculate DB value (destroys B, D and E)
+    ld   B,E
+    dec  DE					//IF E=0 then D--
     inc  D	
-VFILL_loop:
-	nop					;( 5ts)
-    out  (VDPVRAM),A	;(12ts)   14+5+12 = 31ts
-    djnz VFILL_loop		;(14/9ts)
+TMS_VFILLloop$:
+	nop						//( 5ts)
+    out  (VDPVRAM),A		//(12ts)   14+5+12 = 31ts
+    djnz TMS_VFILLloop$		//(14/9ts)
     dec  D
-    jr   NZ,VFILL_loop
+    jp   NZ,TMS_VFILLloop$
 	ret
 
 
@@ -721,9 +737,9 @@ VFILL_loop:
 LDIR2VRAM
 Description:
 		Block transfer from memory to VRAM 
-Input:	BC - blocklength
-		DE - source Memory address
+Input:	DE - source Memory address
 		HL - target VRAM address
+		BC - block size
 Output:	-
 Regs:	A
 ============================================================================= */
@@ -737,26 +753,16 @@ LDIR2VRAM::
 	ld   E,C
 		
 	ld   C,#VDPVRAM
-/*    
-VWRITE_loop:
-	outi         //out [c],[HL] + INC HL + dec B
-
-	dec  DE
-	ld   A,D
-	or   E
-	jr   nz,VWRITE_loop    
-
-	ret*/
   
-    ld   B,E			// Number of loops is in DE
-    dec  DE				// Calculate DB value (destroys B, D and E)
+    ld   B,E
+    dec  DE				//IF E=0 then D--
     inc  D	
-VWRITE_loop:
-	outi				//(18ts) out [c],[HL] + INC HL + dec B
-    jp   NZ,VWRITE_loop	//(11ts) 29 T-States (18 + 11)
+TMS_COPYBYTE_loop:
+	outi						//(18ts) out [c],[HL] + INC HL + dec B
+    jp   NZ,TMS_COPYBYTE_loop	//(11ts) 29 T-States (18 + 11)
 	
     dec  D
-    jr   NZ,VWRITE_loop
+    jp   NZ,TMS_COPYBYTE_loop
 	ret
     
 
@@ -765,9 +771,9 @@ VWRITE_loop:
 GetBLOCKfromVRAM
 Description: 
 		Block transfer from VRAM to memory.  
-Input:	BC - blocklength
-		HL - source VRAM address                     
+Input:	HL - source VRAM address                     
 		DE - target RAM address
+		BC - block size
 Output:	-
 Regs:	A        
 ============================================================================= */
@@ -781,28 +787,17 @@ GetBLOCKfromVRAM::
 
 	ld   C,#VDPVRAM
 
-    ld   B,E			// Number of loops is in DE
-    dec  DE				// Calculate DB value (destroys B, D and E)
+    ld   B,E
+    dec  DE				//IF E=0 then D--
     inc  D	
 VREAD_loop:
 	ini           		//read value from C port, write in [HL] and INC HL
     jp   NZ,VREAD_loop	//(11ts) 29 T-States (18 + 11)
 	
     dec  D
-    jr   NZ,VREAD_loop
+    jp   NZ,VREAD_loop
 	ret
 
-
-    /*
-VREAD_loop:
-	ini           //read value from C port, write in [HL] and INC HL
-
-	dec  DE
-	ld   A,D
-	or   E
-	jr   NZ,VREAD_loop    
-
-	ret*/
 __endasm;
 }   
 
@@ -811,8 +806,9 @@ __endasm;
 /* =============================================================================
 SetVDPtoREAD
 Description:
-		Enable VDP to read (Similar to BIOS SETRD)
-Input:	[char] VRAM address
+		Enable VDP to read and indicates the VRAM address where the reading 
+		will be performed. (Similar to the SETRD function of the MSX BIOS)
+Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A
 ============================================================================= */
@@ -820,15 +816,13 @@ void SetVDPtoREAD(unsigned int vaddr) __naked
 {
 vaddr;	//HL
 __asm
-//	push  AF
 	ld   A,L
 	di
 	out  (VDPSTATUS),A
 	ld   A,H
-	and  #0x3F          ;bit6 = 0 --> read access
+	and  #0x3F          //bit6 = 0 --> read access
 	out  (VDPSTATUS),A 
 	ei
-//	pop   AF
 	ret
 __endasm;
 }
@@ -838,8 +832,9 @@ __endasm;
 /* =============================================================================
 SetVDPtoWRITE
 Description: 
-		Enable VDP to write (Similar to BIOS SETWRT)
-Input:	[char] VRAM address
+		Enable VDP to write and indicates the VRAM address where the writing 
+		will be performed. (Similar to the SETWRT function of the MSX BIOS)
+Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A             
 ============================================================================= */
@@ -847,16 +842,14 @@ void SetVDPtoWRITE(unsigned int vaddr) __naked
 {
 vaddr;	//HL
 __asm
-//	push  AF
-	ld    A,L             ;first 8bits from VRAM ADDR
+	ld    A,L             //first 8bits from VRAM ADDR
 	di
 	out   (VDPSTATUS),A
-	ld    A,H             ;6 bits from VRAM ADDR 
+	ld    A,H             //6 bits from VRAM ADDR 
 	and   #0x3F
-	or    #0x40           ;bit6 = 1 --> write access
+	or    #0x40           //bit6 = 1 --> write access
 	out   (VDPSTATUS),A
 	ei
-//	pop   AF
 	ret
 __endasm;
 }
@@ -885,25 +878,26 @@ __asm
 	call _SetVDPtoWRITE 
 
 	ld   B,#32
-	ld   C,#YHIDDEN
-loop_ClearOAM:
-	ld   A,C		   ;(5ts) 12+14+5= 31ts
-	out  (VDPVRAM),A   ;(12ts) attr Y (time for write 29 T-states)
-	xor  A             ;(8ts)
-	nop                ;(5ts)
-	nop                ;(5ts)
-	out  (VDPVRAM),A   ;(12ts) attr X
-	xor  A             ;(8ts) 12+8+5+5 = 30ts - It is not necessary but I add an Xor as a delay to reach 29 T-states (for TMS9918A)
-//inc  HL            ;(7ts) 12+7+5+5 = 29ts ???
+	ld   C,#SPRITES_YHIDDEN
+TMS_ClearOAMloop$:
+	ld   A,C			//( 5ts) 12+14+5= 31ts
+	out  (VDPVRAM),A	//(12ts) attr Y (time for write 29 T-states)
+	xor  A				//( 8ts)
+	nop					//( 5ts)
+	nop					//( 5ts)
+	out  (VDPVRAM),A	//(12ts) attr X
+//	xor  A				//( 8ts) 12+8+5+5 = 30ts - 
+	inc  BC				//( 7ts) 12+7+5+5 = 29ts This instruction is added to create a delay up to 29 T-states (need for write to TMS9918A VRAM)
 	nop
 	nop
-	out  (VDPVRAM),A   ;attr pattern number
-	xor  A
+	out  (VDPVRAM),A	//attr pattern number
+//	xor  A
+	dec  BC				//This instruction is added to create a delay up to 29 T-states (need for write to TMS9918A VRAM)
 	nop
 	nop
-	out  (VDPVRAM),A   ;attr color
-	djnz loop_ClearOAM   ;(14ts or 9ts if B=0)
-
+	out  (VDPVRAM),A	//attr color
+	djnz TMS_ClearOAMloop$   //(14ts or 9ts if B=0)
+	
 	ret  
 __endasm;
 } 
@@ -926,16 +920,16 @@ __asm
 	ld   A,(#RG0SAV+1)	//read vdp(1) from mem
 
 	bit  0,C	//IF size = 0 (8x8)?
-	jr   Z,SPRsize8	
+	jr   Z,TMS_SPRsize8$	
 
 //	set  1,A	//16x16
 	or   #0b00000010
-	jr   SPRsetREG1
+	jr   TMS_setREG1$
   
-SPRsize8:
+TMS_SPRsize8$:
 //	res  1,A	//8x8
 	and  #0b11111101
-	jr   SPRsetREG1  
+	jr   TMS_setREG1$  
   
 __endasm;
 } 
@@ -958,47 +952,20 @@ __asm
 	ld   A,(#RG0SAV+1)	//read vdp(1) from mem
 
 	bit  0,C	//IF zoom enable?
-	jr   Z,SPRnozoom
+	jr   Z,TMS_SPRnoZoom$
 
 	or   #0b00000001		//(8c)enable zoom	
-	jr   SPRsetREG1
+	jr   TMS_setREG1$
   
-SPRnozoom:
+TMS_SPRnoZoom$:
 	and   #0b11111110 		//(8c)disable zoom	
 
-SPRsetREG1:  
+TMS_setREG1$:  
 	ld   C,#0x01
 	jp   writeVDP
 
 __endasm;
 } 
-
-
-/*void SetSpritesZoom(char zoom) __naked
-{
-zoom;	//A	
-__asm
-  
-	ld   HL,#RG0SAV+1	//read vdp(1) from mem
-	ld   B,(HL)
-
-	or   A
-	jr   Z,SPRnozoom
-
-	set  0,B	//zoom
-	jr   SPRsetREG1
-  
-SPRnozoom:
-	res  0,B	//(10c)no zoom
-
-SPRsetREG1:  
-	ld   C,#0x01
-	ld   A,B  
-	jp   writeVDP
-
-__endasm;
-}*/
-
 
 
 
@@ -1031,14 +998,14 @@ __asm
 //	call _SetVDPtoWRITE		//VDP ready to write to VRAM
 
 	ld   A,4(IX)	//y
-	call _WriteByte2VRAM
+	call WriteByteToVRAM
 
 	ld   A,C		//x
 	call _FastVPOKE
 
 
-	ld   E,6(IX)	//pattern
-	call GetSpritePattern	//Input:E -->Sprite pattern; Output:E
+	ld   E,6(IX)	//Sprite pattern
+	call GetSpritePattern	//Input:E; Output:E pattern position according to sprite size
 	ld   A,E
 	call _FastVPOKE
 
@@ -1056,7 +1023,7 @@ __endasm;
 GetSPRattrVADDR
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
-		Same as MSX BIOS CALATR
+		(Similar to the CALATR function of the MSX BIOS)
 Input:	[char] [A] sprite plane (0-31) 
 Output:	[unsigned int] [HL] VRAM address
 Regs.:	[DE]
@@ -1079,15 +1046,15 @@ Description:
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
 Input:	[E] sprite pattern 
-Output: [E] new pattern value
+Output: [E] pattern position
 Regs:	A
 ============================================================================= */
 GetSpritePattern::
 
-	ld   A,(#RG0SAV+1) ; --- read vdp(1) from mem
+	ld   A,(#RG0SAV+1)	// read vdp(1) from mem
 
-	bit  1,A        //Sprite size; 1=16x16
-	ret  Z			//same value
+	bit  1,A			//Sprite size; 1=16x16
+	ret  Z				//same value
 
 //if spritesize = 16x16 then E*4
 	SLA  E

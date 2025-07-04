@@ -1,29 +1,23 @@
 /* =============================================================================
-Example01.c
-Version: 1.0 (20/January/2024)
+# Example01.c
+Version: 1.1 (04/07/2025)
 Architecture: MSX
 Format: MSX ROM 8k
 Programming language: C and Z80 assembler
-Compiler: SDCC 4.3 or newer
+Compiler: SDCC 4.4 or newer
 
-Description:
-	Simple example of the VDP TMS9918A MSX Library (fR3eL Project)
+## Description:
+	Simple example of the VDP_TMS9918A MSX Library (fR3eL Project)
+	
+## History of versions (dd/mm/yyyy):
+- v1.1 (04/07/2025)
+- v1.0 (20/01/2024)
 ============================================================================= */
 #include "VDP_TMS9918A.h"
 
 
 #define CGTABL	0x0004	//(2B) Base address of the MSX character set in ROM
 
-
-const char TheSprite[]={
-0b00111100,
-0b01111110,
-0b11011011,
-0b11111111,
-0b11111111,
-0b11011011,
-0b01100110,
-0b00111100};
 
 // tMSgfX devtool v0.9.16.0
 // Map width:32 height:17
@@ -69,9 +63,10 @@ const char testmap_MAP[]={
 void main(void) 
 {
 	unsigned int BIOSfont = *(unsigned int *) CGTABL; //get BIOS font address
+	char TheSprite[8];			//buffer for one Sprite patter
 		
 	COLOR(15,4,5);
- 	SCREEN(GRAPHIC1);		// Set Screen 1
+ 	SCREEN(GRAPHIC1);			// Set Screen 1
 	SetSpritesSize(SPRITES8x8);
 	
 	// Copy MSX BIOS font to VRAM Pattern Table
@@ -80,14 +75,17 @@ void main(void)
 	// Copy a block of characters (tiles) to VRAM Name Table
 	CopyToVRAM((unsigned int) testmap_MAP,G1_MAP+32,544);
 	
-	// Copy a 8x8 Sprite Pattern to VRAM Sprite Pattern Table
-	CopyToVRAM((unsigned int) TheSprite,SPR_PAT,8);
+	// Copy a 8x8 tile Pattern to Sprite Pattern Table
+	CopyFromVRAM(G1_PAT+16,(unsigned int) TheSprite,8);	//Copy VRAM to RAM
+	CopyToVRAM((unsigned int) TheSprite,SPR_PAT,8);		//Copy RAM to VRAM
 	
 	// Puts a Sprite on plane 0
-	VPOKE(156,SPR_OAM);		//y
-	FastVPOKE(124);			//x
-	FastVPOKE(0);			//sprite pattern
-	FastVPOKE(MAGENTA);		//color
+	VPOKE(SPR_OAM,156);			//y
+	FastVPOKE(124);				//x
+	FastVPOKE(0);				//sprite pattern
+	FastVPOKE(LIGHT_YELLOW);	//color
+	
+	PUTSPRITE(1,140,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
 
 // execute BIOS CHGET - One character input (waiting)
 __asm call 0x009F __endasm;	

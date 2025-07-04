@@ -254,9 +254,10 @@ void VPOKE(unsigned int vaddr, char value);
 /* =============================================================================
 FastVPOKE
 Description:
-		Writes a value to the next video RAM position. 
-		Requires the VDP to be in write mode, either by previously 
-		using VPOKE or SetVRAMtoWRITE functions.
+		Writes a value to the last position in video RAM and increments it.
+		This is a quick way to write consecutive values ​​to VRAM.
+		Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE 
+		function at the beginning of the sequence.
 Input:	[char] value
 Output:	- 
 ============================================================================= */
@@ -278,9 +279,10 @@ char VPEEK(unsigned int vaddr);
 /* =============================================================================
 FastVPEEK
 Description:
-		Reads the next video RAM value.
-		Requires the VDP to be in read mode, either by previously 
-		using VPEEK or SetVDPtoREAD functions.
+		Reads the value from the last position in video RAM and increments it.
+		This is a fast way to read consecutive values ​​from VRAM.
+		It requires the VDP to be in read mode, using the SetVDPtoREAD or VPEEK 
+		function at the beginning of the sequence.
 Input:	-
 Output:	[char] value
 ============================================================================= */
@@ -293,11 +295,11 @@ FillVRAM
 Description:
 		Fill a large area of the VRAM of the same value.
 Input:	[unsigned int] VRAM address
-		[unsigned int] blocklength
-		[char] Value to fill.
+		[unsigned int] block size
+		[char] Value to fill
 Output:	- 
 ============================================================================= */
-void FillVRAM(unsigned int vaddr, unsigned int length, char value);
+void FillVRAM(unsigned int vaddr, unsigned int size, char value);
 
 
 
@@ -307,10 +309,10 @@ Description:
 		Block transfer from memory to VRAM 
 Input:	[unsigned int] Memory address
 		[unsigned int] VRAM address
-		[unsigned int] blocklength
+		[unsigned int] block size
 Output:	- 
 ============================================================================= */
-void CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int length);
+void CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size);
 
 
 
@@ -320,10 +322,10 @@ Description:
 		Block transfer from VRAM to memory
 Input:	[unsigned int] VRAM address                     
 		[unsigned int] RAM address
-		[unsigned int] blocklength
+		[unsigned int] block size
 Output:	-
 ============================================================================= */
-void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int length);
+void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size);
 
 
 
@@ -354,8 +356,9 @@ void SetVDP(char reg, char value);
 /* =============================================================================
 SetVDPtoREAD
 Description:
-		Enable VDP to read (Similar to BIOS SETRD)
-Input:	[char] VRAM address
+		Enable VDP to read and indicates the VRAM address where the reading 
+		will be performed. (Similar to BIOS SETRD)
+Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A
 ============================================================================= */
@@ -366,8 +369,9 @@ void SetVDPtoREAD(unsigned int vaddr);
 /* =============================================================================
 SetVDPtoWRITE
 Description: 
-		Enable VDP to write (Similar to BIOS SETWRT)
-Input:	[char] VRAM address
+		Enable VDP to write and indicates the VRAM address where the writing 
+		will be performed. (Similar to BIOS SETWRT)
+Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A             
 ============================================================================= */
@@ -443,13 +447,22 @@ unsigned int GetSPRattrVADDR(char plane);
 
 
 
+
+
+
+
+// ############################################################################# ASSEMBLE INLINE RUTINES
+
+
+
 /* =============================================================================
-GetSpritePattern
+Label:	GetSpritePattern
 Description: 
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
 Input:	[E] sprite pattern 
-Output: [E] new pattern value
+Output: [E] pattern position
+Regs:	A
 ============================================================================= */
 
 
