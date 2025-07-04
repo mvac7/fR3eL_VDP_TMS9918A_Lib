@@ -313,7 +313,7 @@ BANK2	| 0x1000
 <table>
 <tr><th colspan=3 align="left">SCREEN</th></tr>
 <tr><td colspan=3>Sets the display mode of the screen.</td></tr>
-<tr><th>Function</th><td colspan=2>SCREEN(mode)<td></tr>
+<tr><th>Function</th><td colspan=2>SCREEN(mode)</td></tr>
 <tr><th>Input</th><td>char</td><td>Screen mode (0-3)<br/>0 = TextMode1<br/>1 = Graphic1<br/>2 = Graphic2<br/>3 = MultiColor</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
@@ -361,7 +361,7 @@ Put the ink, background and foreground colors.<br/>This function has different b
 In Text1 mode, the color change is instantaneous except the border color which has no effect.<br/>
 In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant effect. Ink and background colors are only used when starting the screen with the SCREEN() function.
 </td></tr>
-<tr><th>Function</th><td colspan=2>COLOR(ink, background, border)<td></tr>
+<tr><th>Function</th><td colspan=2>COLOR(ink, background, border)</td></tr>
 <tr><th rowspan=3>Input</th><td>char</td><td>Ink color (0-15)</td></tr>
 <tr><td>char</td><td>Background color (0-15)</td></tr>
 <tr><td>char</td><td>Border color (0-15)</td></tr>
@@ -447,7 +447,7 @@ In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant
 <table>
 <tr><th colspan=3 align="left">GetVDP</th></tr>
 <tr><td colspan=3>Provides the mirror value of a VDP register stored in system variables.</td></tr>
-<tr><th>Function</th><td colspan=2>GetVDP(register)<td></tr>
+<tr><th>Function</th><td colspan=2>GetVDP(register)</td></tr>
 <tr><th>Input</th><td>char</td><td>VDP register (0-7)</td></tr>
 <tr><th>Output</th><td>char</td><td>Value</td></tr>
 </table>
@@ -474,7 +474,7 @@ char isText1Mode(void)
 <table>
 <tr><th colspan=3 align="left">SetVDP</th></tr>
 <tr><td colspan=3>Writes a value to a VDP register.</td></tr>
-<tr><th>Function</th><td colspan=2>SetVDP(register, value)<td></tr>
+<tr><th>Function</th><td colspan=2>SetVDP(register, value)</td></tr>
 <tr><th rowspan=2>Input</th><td>char</td><td>VDP register (0-7)</td></tr>
 <tr><td>char</td><td>value</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -498,7 +498,7 @@ char isText1Mode(void)
 <table>
 <tr><th colspan=3 align="left">VPOKE</th></tr>
 <tr><td colspan=3>Writes a value to the video RAM.</td></tr>
-<tr><th>Function</th><td colspan=2>VPOKE(VRAMaddr,value)<td></tr>
+<tr><th>Function</th><td colspan=2>VPOKE(VRAMaddr,value)</td></tr>
 <tr><th rowspan=2>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>char</td><td>Value</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -519,7 +519,7 @@ char isText1Mode(void)
 <tr><th colspan=3 align="left">FastVPOKE</th></tr>
 <tr><td colspan=3>Writes a value to the next video RAM position.<br/> 
 Requires the VDP to be in write mode, either by previously using VPOKE or SetVRAMtoWRITE functions.</td></tr>
-<tr><th>Function</th><td colspan=2>FastVPOKE(value)<td></tr>
+<tr><th>Function</th><td colspan=2>FastVPOKE(value)</td></tr>
 <tr><th rowspan=1>Input</th><td>char</td><td>Value</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
@@ -540,7 +540,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 <table>
 <tr><th colspan=3 align="left">VPEEK</th></tr>
 <tr><td colspan=3>Reads a value from the video RAM.</td></tr>
-<tr><th>Function</th><td colspan=2>VPEEK(VRAMaddr)<td></tr>
+<tr><th>Function</th><td colspan=2>VPEEK(VRAMaddr)</td></tr>
 <tr><th>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td>char</td><td>Value</td></tr>
 </table>
@@ -559,7 +559,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 <table>
 <tr><th colspan=3 align="left">FastVPEEK</th></tr>
 <tr><td colspan=3>Reads the next video RAM value.<br/>Requires the VDP to be in read mode, either by previously using VPEEK or SetVRAMtoREAD functions.</td></tr>
-<tr><th>Function</th><td colspan=2>FastVPEEK()<td></tr>
+<tr><th>Function</th><td colspan=2>FastVPEEK()</td></tr>
 <tr><th>Input</th><td colspan=2>-</td></tr>
 <tr><th>Output</th><td>char</td><td>Value</td></tr>
 </table>
@@ -582,7 +582,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 <table>
 <tr><th colspan=3 align="left">FillVRAM</th></tr>
 <tr><td colspan=3>Fill a large area of the VRAM of the same byte.</td></tr>
-<tr><th>Function</th><td colspan=2>FillVRAM(VRAMaddr, size, value)<td></tr>
+<tr><th>Function</th><td colspan=2>FillVRAM(VRAMaddr, size, value)</td></tr>
 <tr><th rowspan=3>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>unsigned int</td><td>block size</td></tr>
 <tr><td>char</td><td>Value</td></tr>
@@ -602,7 +602,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 <table>
 <tr><th colspan=3 align="left">CopyToVRAM</th></tr>
 <tr><td colspan=3>Block transfer from memory to VRAM.</td></tr>
-<tr><th>Function</th><td colspan=2>CopyToVRAM(MEMaddr, VRAMaddr, size)<td></tr>
+<tr><th>Function</th><td colspan=2>CopyToVRAM(MEMaddr, VRAMaddr, size)</td></tr>
 <tr><th rowspan=3>Input</th><td>unsigned int</td><td>Memory address</td></tr>
 <tr><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>unsigned int</td><td>block size</td></tr>
@@ -625,7 +625,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 <table>
 <tr><th colspan=3 align="left">CopyFromVRAM</th></tr>
 <tr><td colspan=3>Block transfer from VRAM to RAM.</td></tr>
-<tr><th>Function</th><td colspan=2>CopyFromVRAM(VRAMaddr, RAMaddr, size)<td></tr>
+<tr><th>Function</th><td colspan=2>CopyFromVRAM(VRAMaddr, RAMaddr, size)</td></tr>
 <tr><th rowspan=3>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>unsigned int</td><td>RAM address</td></tr>
 <tr><td>unsigned int</td><td>block size</td></tr>
@@ -1052,7 +1052,7 @@ __endasm;
 <table>
 <tr><th colspan=3 align="left">fillVR</th></tr>
 <tr><td colspan=3>Fill a large area of the VRAM of the same byte.</td></tr>
-<tr><th>Label</th><td colspan=2>fillVR<td></tr>
+<tr><th>Label</th><td colspan=2>fillVR</td></tr>
 <tr><th rowspan=3>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><td>DE</td><td>block size</td></tr>
 <tr><td>A</td><td>Value</td></tr>
@@ -1080,7 +1080,7 @@ __endasm;
 <table>
 <tr><th colspan=3 align="left">LDIR2VRAM</th></tr>
 <tr><td colspan=3>Block transfer from memory to VRAM.</td></tr>
-<tr><th>Label</th><td colspan=2>LDIR2VRAM<td></tr>
+<tr><th>Label</th><td colspan=2>LDIR2VRAM</td></tr>
 <tr><th rowspan=3>Input</th><td>DE</td><td>source Memory address</td></tr>
 <tr><td>HL</td><td>target VRAM address</td></tr>
 <tr><td>BC</td><td>block size</td></tr>
@@ -1111,7 +1111,7 @@ __endasm;
 <table>
 <tr><th colspan=3 align="left">GetBLOCKfromVRAM</th></tr>
 <tr><td colspan=3>Block transfer from VRAM to memory.</td></tr>
-<tr><th>Label</th><td colspan=2>GetBLOCKfromVRAM<td></tr>
+<tr><th>Label</th><td colspan=2>GetBLOCKfromVRAM</td></tr>
 <tr><th rowspan=3>Input</th><td>HL</td><td>source VRAM address</td></tr>
 <tr><td>DE</td><td>target RAM address</td></tr>
 <tr><td>BC</td><td>block size</td></tr>
@@ -1135,36 +1135,24 @@ __endasm;
 
 #### 4.5.12 GetSPRattrVADDR
 
-/* =============================================================================
-GetSPRattrVADDR
-Description: 
-		Gets the VRAM address of the Sprite attributes of the specified plane
-		(Similar to the CALATR function of the MSX BIOS)
-Input:	[char] [A] sprite plane (0-31) 
-Output:	[unsigned int] [HL] VRAM address
-Regs.:	[DE]
-============================================================================= */
-unsigned int GetSPRattrVADDR(char plane)
-
-
-
 <table>
-<tr><th colspan=3 align="left">ReadByteFromVRAM</th></tr>
-<tr><td colspan=3>Reads a value from video RAM</td></tr>
-<tr><th>Label</th><td colspan=2>ReadByteFromVRAM</td></tr>
-<tr><th>Input</th><td>HL</td><td>VRAM address</td></tr>
-<tr><th>Output</th><td>A</td><td>value</td></tr>
-<tr><th>Regs.</th><td colspan=2>A</td></tr>
+<tr><th colspan=3 align="left">GetSPRattrVADDR</th></tr>
+<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.<br/>(Similar to the CALATR function of the MSX BIOS)</td></tr>
+<tr><th>Label</th><td colspan=2>_GetSPRattrVADDR</td></tr>
+<tr><th>Input</th><td>A</td><td>sprite plane (0-31)</td></tr>
+<tr><th>Output</th><td>HL</td><td>VRAM address</td></tr>
+<tr><th>Regs.</th><td colspan=2>DE</td></tr>
 </table>
 
 ##### Example:
 
 ```asm
 __asm
-	ld   HL,#SPR_OAM
-	call ReadByteFromVRAM
-	cp   #128
-	jr   NC,StopSPR2right
+	ld   A,#10
+	call _GetSPRattrVADDR
+	call _SetVDPtoWRITE
+	ld   A,#SPRITES_YHIDDEN		//hidden sprite plane 10
+	call _FastVPOKE
 __endasm;
 ```
 
