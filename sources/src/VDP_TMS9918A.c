@@ -4,10 +4,10 @@
 - Version: 1.5 (11/12/2023)
 - Author: mvac7/303bcn
 - Architecture: MSX
-- Environment: ROM, MSXBASIC or MSX-DOS
-- Format: C object (SDCC .rel)
+- Environment: ROM, MSX-DOS or BASIC
+- Format: SDCC Relocatable object file (.rel)
 - Programming language: C and Z80 assembler
-- Compiler: SDCC 4.3 or newer 
+- Compiler: SDCC 4.4 or newer 
 
 ## Description:                                                              
 Opensource library for acces to VDP TMS9918A/28A/29A
@@ -27,6 +27,8 @@ Features:
 					Added FastVPOKE and FastVPEEK functions
 					Added initialization of MULTICOLOR mode (in SCREEN function) 
 					with sorted map.
+					Added initialization of the color table in GRAPHIC1 mode 
+					(based on the values ​​previously given by the COLOR function).
 					The FillVRAM, CopyToVRAM, and CopyFromVRAM functions 
 					have been optimized for faster access to VRAM.
 - v1.4 (16/08/2022) Bug#2 (init VRAM addr in V9938) and code optimization 
@@ -49,14 +51,14 @@ Features:
 SCREEN
 Description:
 		Initializes the display to one of the four standardized modes on the MSX.
-		- T1 and G1 modes are initialized the map (Pattern Name Table) with 
-		  value 0. 
-		- In Graphic2 and MultiColor modes are initialized in an orderly manner 
-		  (as in MSX BASIC) to be able to display an image directly.
-		- In graphics modes, the sprite attributes (OAM) are initialized. 
+		- All screen modes will be initialized with the pattern name table set 
+		  to 0, just like the CLS function.  
+		- Initialization of the color table in GRAPHIC1 mode 
+		  (based on the values ​​previously given by the COLOR function).
+		- Initializing the Sprite Attribute Table (OAM) in graphic modes.
 		
 Input:	[char] number of screen mode
-			0 = TextMode1
+			0 = Text1
 			1 = Graphic1
 			2 = Graphic2
 			3 = MultiColor
@@ -68,44 +70,40 @@ mode;	//A
 __asm
 	push IX
 
-;  ld   A,4(IX)
+	xor  A
+	jr   Z,TMS_screen0$
 	cp   #1
 	jr   Z,TMS_screen1$
-	cp   #2
-	jr   Z,TMS_screen2$
 	cp   #3
 	jr   Z,TMS_screen3$
+
+//TMS_screen2$:
+	call ClearG1G2
+	call _ClearSprites      
+	ld   HL,#mode_GFX2
+	jr   TMS_setREGs$
+
   
-//TMS_screen0 :
+TMS_screen0$:
 	call ClearT1
 
 	ld   HL,#mode_TXT1
 	;screen 0 > 40 columns mode
 	ld   A,#39  ;default value
-	ld   (#LINL40),A 
-
-	jr  TMS_setREGs$
+	ld   (#LINL40),A
+	jr   TMS_setREGs$
 
 TMS_screen1$:
 	call TMS_initG1$
 	call ClearG1G2
 	call _ClearSprites    
 	ld   HL,#mode_GFX1
-	jr  TMS_setREGs$
-  
+	jr   TMS_setREGs$
+	
 TMS_screen3$:
-	;call _SortMCmap	;Not in this universe
 	call ClearMC
 	call _ClearSprites  
 	ld   HL,#mode_MC
-	jr  TMS_setREGs$  
-
-TMS_screen2$:
-	;call _SortG2map	;Not in this universe
-	call ClearG1G2
-	call _ClearSprites      
-	ld   HL,#mode_GFX2
-
 
 TMS_setREGs$:
 	ld   B,#7
@@ -115,25 +113,27 @@ TMS_REGSloop$:
 	call writeVDP
 	inc  HL
 	inc  C
-	djnz  TMS_REGSloop$
+	djnz TMS_REGSloop$
   
-;initialize VRAM access on MSX2 or higher (V9938)
-	LD    HL,#MSXID3
-	LD    A,(#EXPTBL)            ;EXPTBL=main BIOS-ROM slot address
-	CALL  0x000C                 ;RDSLTReads the value of an address in another slot
+//------------------------------------------------------------------------------
+//initialize VRAM access on MSX2 or higher (V9938)
+	LD   HL,#MSXID3
+	LD   A,(#EXPTBL)		//EXPTBL=main BIOS-ROM slot address
+	CALL 0x000C				//RDSLTReads the value of an address in another slot
 	EI
 	or   A   
 	jr   Z,TMS_screenEND$
   
-;clear upper bits (A14,A15,A16) from VRAM address for only acces to first 16k
+//clear upper bits (A14,A15,A16) from VRAM address for only acces to first 16k
 	xor  A
-	out  (VDPSTATUS),A   ;clear three upper bits for 16bit VRAM ADDR (128K)
-	ld   A,#14+128       ;V9938 reg 14 - Control Register
+	out  (VDPSTATUS),A		//clear three upper bits for 16bit VRAM ADDR (128K)
+	ld   A,#14+128			//V9938 reg 14 - Control Register
 	out  (VDPSTATUS),A
   
 TMS_screenEND$: 
 	pop  IX
 	ret
+//------------------------------------------------------------------------------
 
 
 
@@ -160,50 +160,51 @@ TMS_initG1$:
 
 /* --------------------------------------------------------------
 Screens data  
+
+Reg/Bit  7     6     5     4     3     2     1     0
+0        -     -     -     -     -     -     M3    EXTVID
+1        4/16K	BLK   GINT	M1    M2    -     SIZE  MAG
 -------------------------------------------------------------- */
-;Reg/Bit  7     6     5     4     3     2     1     0
-;0        -     -     -     -     -     -     M3    EXTVID
-;1        4/16K	BLK   GINT	M1    M2    -     SIZE  MAG
 
-; M1=1; M2=0; M3=0  
+//Text1> M1=1; M2=0; M3=0  
 mode_TXT1:
- .db 0B00000000 ;reg0 $00 
- .db 0B11110000 ;reg1 $F0 
- .db 0x00		;reg2 Name Table             (0000h)
- .db 0x00		;reg3 --
- .db 0x01		;reg4 Pattern Table          (0800h)
- .db 0x00		;reg5 --
- .db 0x00		;reg6 --
+ .db 0B00000000	//reg0 $00 
+ .db 0B11110000 //reg1 $F0 
+ .db 0x00		//reg2 Name Table				(0000h)
+ .db 0x00		//reg3 --
+ .db 0x01		//reg4 Pattern Table			(0800h)
+ .db 0x00		//reg5 --
+ .db 0x00		//reg6 --
 
-; M1=0; M2=0; M3=0  
+//Graphic1> M1=0; M2=0; M3=0  
 mode_GFX1:
- .db 0B00000000 ;reg0 $00
- .db 0B11100000 ;reg1 Default sprites 8x8 No Zoom
- .db 0x06		;reg2 Name Table             (1800h)
- .db 0x80		;reg3 Color Table            (2000h)
- .db 0x00		;reg4 Pattern Table          (0000h)
- .db 0x36		;reg5 Sprite Attribute Table (1B00h)
- .db 0x07		;reg6 Sprite Pattern Table   (3800h)
+ .db 0B00000000 //reg0 $00
+ .db 0B11100000 //reg1 Default sprites 8x8 No Zoom
+ .db 0x06		//reg2 Name Table				(1800h)
+ .db 0x80		//reg3 Color Table				(2000h)
+ .db 0x00		//reg4 Pattern Table			(0000h)
+ .db 0x36		//reg5 Sprite Attribute Table	(1B00h)
+ .db 0x07		//reg6 Sprite Pattern Table		(3800h)
 
-; M1=0; M2=0; M3=1  
+//Graphic2> M1=0; M2=0; M3=1  
 mode_GFX2:
- .db 0B00000010 ;reg0
- .db 0B11100000 ;reg1 Default sprites 8x8 No Zoom
- .db 0x06  ;reg2 Name Table				     (1800h)
- .db 0xFF  ;reg3 Color Table                 (2000h)
- .db 0x03  ;reg4 Pattern Table               (0000h)
- .db 0x36  ;reg5 Sprite Attribute Table      (1B00h)
- .db 0x07  ;reg6 Sprite Pattern Table        (3800h)
+ .db 0B00000010 //reg0
+ .db 0B11100000 //reg1 Default sprites 8x8 No Zoom
+ .db 0x06		//reg2 Name Table				(1800h)
+ .db 0xFF		//reg3 Color Table				(2000h)
+ .db 0x03		//reg4 Pattern Table			(0000h)
+ .db 0x36		//reg5 Sprite Attribute Table	(1B00h)
+ .db 0x07		//reg6 Sprite Pattern Table		(3800h)
 
-; M1=0; M2=1; M3=0
+//MultiColor> M1=0; M2=1; M3=0
 mode_MC:
- .db 0B00000000	;reg0 $00
- .db 0B11101000	;reg1 $E8 Default sprites 8x8 No Zoom
- .db 0x02		;reg2 Name Table             (0800h)
- .db 0x00		;reg3 Pattern Table          (0000h)
- .db 0x00		;reg4 --
- .db 0x36		;reg5 Sprite Attribute Table (1B00h)
- .db 0x07		;reg6 Sprite Pattern Table   (3800h)  
+ .db 0B00000000	//reg0 $00
+ .db 0B11101000	//reg1 $E8 Default sprites 8x8 No Zoom
+ .db 0x02		//reg2 Name Table				(0800h)
+ .db 0x00		//reg3 Pattern Table			(0000h)
+ .db 0x00		//reg4 --
+ .db 0x36		//reg5 Sprite Attribute Table	(1B00h)
+ .db 0x07		//reg6 Sprite Pattern Table		(3800h)  
 // --------------------------------------------------------------
 __endasm;
 } 
@@ -215,7 +216,7 @@ __endasm;
 SortG2map 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a G2 (256x192px) image.
+		Designed to be able to display a Graphic2 (256x192px) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -234,21 +235,6 @@ TMSinitG2_loop$:
 	dec  D
 	jp   NZ,TMSinitG2_loop$
 	ret	
-	
-/*
-	ld   HL,#G2_MAP
-	call _SetVDPtoWRITE
-	ld	 DE,#0x300
-	ld   C,#VDPVRAM
-	ld   A,#0
-TMSinitG2_loop$:
-	out  (C),B	
-	dec  DE
-	inc  B
-	ld   A,D
-	or   E
-	jr   NZ,TMSinitG2_loop$
-	ret	*/
 __endasm;	
 }
 
@@ -258,7 +244,7 @@ __endasm;
 SortMCmap 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a MC (64x48 blocks) image.
+		Designed to be able to display a MultiColor (64x48 blocks) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -296,15 +282,12 @@ __endasm;
 }
 
 
-  
-
 
 /* =============================================================================
 CLS 
 Description: 
 		 Clear Screen
-		 Fill the Name Table with the value 0
-		 Does not clear the sprite attribute table (OAM)
+		 Fill VRAM Name Table with the value 0
 Input:	-
 Output:	-
 ============================================================================= */
@@ -313,9 +296,9 @@ void CLS(void) __naked
 __asm
 
 	ld   A,(#RG0SAV+1)	;reg1
-	bit  4,A			;M1=1 Text-1 (T1)
+	bit  4,A			;M1=1 Text1
 	jr   NZ,ClearT1
-	bit  3,A			;M2=1 Multi Colour (MC)
+	bit  3,A			;M2=1 MultiColor
 	jr   NZ,ClearMC
 
 //	ld   A,(#RG0SAV)	;reg0  
@@ -350,11 +333,12 @@ COLOR
 Description:
 		Specifies the ink, foreground and background colors.
 		This function has different behaviors depending on the screen mode.
-		In T1 (text) mode, the color change is instantaneous except the 
+		In Text1 mode, the color change is instantaneous except the 
 		border color which has no effect.
-		In G1, G2 and MC modes, only the border color has an instant effect. 
-		Ink and background colors are only used when starting the screen with 
-		the SCREEN() function.
+		In Graphic1, Graphic2 and Multicolor modes, only the border color has 
+		an instant effect. 
+		Ink and background colors are only used when starting the screen in
+		Graphic1 mode.
 
 Input:	[char] ink color
 		[char] background color

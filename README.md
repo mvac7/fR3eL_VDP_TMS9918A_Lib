@@ -3,8 +3,8 @@
 <table>
 <tr><td>Name</td><td>VDP_TMS9918A</td></tr>
 <tr><td>Architecture</td><td>MSX</td></tr>
-<tr><td>Environment</td><td>MSXDOS, ROM, MSXBASIC</td></tr>
-<tr><td>Format</td><td>C Object (SDCC .rel)</td></tr>
+<tr><td>Environment</td><td>ROM, MSX-DOS or BASIC</td></tr>
+<tr><td>Format</td><td>SDCC Relocatable object file (.rel)</td></tr>
 <tr><td>Programming language</td><td>C and Z80 assembler</td></tr>
 <tr><td>Compiler</td><td>SDCC v4.4 or newer</td></tr>
 </table>
@@ -17,14 +17,15 @@ C Library functions to work with the TMS9918A/28A/29A video processor.
 
 This library is designed to develop applications for MSX computers in any of the different environments available (ROM, MSXDOS or MSXBASIC), using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
 
-It is optimized to offer the highest possible speed when using the TMS9918A VDP, especially in functions that work with data blocks (FillVRAM, CopyToVRAM and CopyFromVRAM). Fast read/write functions (FastVPOKE and FastVPEEK) have been added, which access the next used video memory cell.
+It is optimized to offer the highest possible speed when using the TMS9918A VDP, especially in functions that work with data blocks (FillVRAM, CopyToVRAM and CopyFromVRAM). 
+Fast read/write functions (FastVPOKE and FastVPEEK) have been added, which access the next used video memory cell.
 
 You can complement it with any of these libraries:
 - [VDP_PRINT](https://github.com/mvac7/fR3eL_VDP_PRINT_Lib) library with functions for display text strings in the graphic modes of the TMS9918A (G1 and G2).
 - [VDP_SPRITES](https://github.com/mvac7/SDCC_VDP_SPRITES_Lib) Library of functions for directly accessing sprite attributes from the TMS9918A video processor.
 
 You also have a [VDP_TMS9918A_MSXBIOS](https://github.com/mvac7/SDCC_VDP_TMS9918A_Lib) Library, developed using functions of the MSX BIOS. 
-The advantage of using the BIOS is that the library is more compact and guarantees compatibility with all MSX models, but it has the disadvantage of being slow.
+The advantage of using the BIOS is that the library is more compact and guarantees compatibility with all MSX models, but the video memory access functions are slow.
 
 You can access the documentation here with [`How to use the library`](docs/HOWTO.md).
 
@@ -47,12 +48,12 @@ Enjoy it!
 	- Added SetVRAMtoREAD and SetVRAMtoWRITE functions
 	- Added FastVPOKE and FastVPEEK functions
 	- Added initialization of MC mode (in SCREEN function) with sorted map.
-	- The order of input values in the VPOKE function has been reversed to optimize the function by taking advantage of the new Z80 calling conventions.
+	- Added initialization of the color table in GRAPHIC1 mode (based on the values ​​previously given by the COLOR function).
 	- The FillVRAM, CopyToVRAM, and CopyFromVRAM functions have been optimized for faster access to VRAM.
-- v1.4 (16 August 2022) Bug #2 (initialize VRAM address in V9938) and code optimization 
-- v1.3 (23 July  2019) COLOR function improvements
-- v1.2 ( 4 May   2019) 
-- v1.1 (25 April 2019) 
+- v1.4 (16 August 2022) Bug #2 (initialize VRAM address in V9938) and code optimization.
+- v1.3 (23 July  2019) COLOR function improvements.
+- v1.2 ( 4 May   2019) ?
+- v1.1 (25 April 2019) ?
 - v1.0 (14 February 2014) Initial version
 
 <br/>
@@ -72,21 +73,21 @@ Enjoy it!
 
 ### Initialization
 
-| Name | Declaration | Output | Description |
-| ---  | ---         | ---    | ---         |
-| SCREEN         | `SCREEN(char mode)` | --- | Initializes the display |
-| SortG2map      | `SortG2map()` | --- | Initializes the pattern name table, with sorted values |
-| SortMCmap      | `SortMCmap()` | --- | Initializes the pattern name table, with sorted values |
-| COLOR          | `COLOR(char ink, char background, char border)` | --- | Set the foreground, background, and border screen colors |
-| CLS            | `CLS()` | --- | Clear Screen |
+| Name      | Declaration | Output | Description |
+| :---      | :---        | :---   | :---        |
+| SCREEN    | `SCREEN(char mode)` | --- | Initializes the display |
+| SortG2map | `SortG2map()` | --- | Initializes the pattern name table with sorted values |
+| SortMCmap | `SortMCmap()` | --- | Initializes the pattern name table with sorted values |
+| COLOR     | `COLOR(char ink, char background, char border)` | --- | Set the foreground, background, and border screen colors |
+| CLS       | `CLS()` | --- | Clear Screen. Fill VRAM Name Table with the value 0 |
 
 <br/>
 
-### Access to the VDP
+### Access to the VDP Registers
 
 | Name   | Declaration | Output | Description |
-| ---    | ---         | ---    | ---         |
-| GetVDP | `GetVDP(char reg)`   | `char` | Gets the value in a VDP register.<br/>Provides the mirror value stored in system variables. |
+| :---   | :---        | :---   | :---        |
+| GetVDP | `GetVDP(char reg)`   | `char` | Gets the value in a VDP register.<br/>Provides the mirror value stored in system variables |
 | SetVDP | `SetVDP(char, char)` | ---    | Writes a value to a VDP register |
 
 <br/>
@@ -143,22 +144,25 @@ Enjoy it!
 
 ## Notes about operation
 
-It's important to note that the SCREEN function doesn't behave like the BIOS functions with the same purpose (CHGMOD, INITXT, INIGRP, etc.). 
-This is because the graphics will be provided by the developer, and there's no need to duplicate this work.
+It's important to note that some functions in this library don't work the same as their counterparts in the BIOS. 
+This is because we've tried to make this library as fast and compact as possible.
 
-This function writes the same configuration of the different tables used in the MSX system to the VDP registers and fills the VRAM name table with the value 0.
+Below are the similarities and differences between the BIOS functions and those in this library:
 
-The sprite attribute table is also initialized with all values ​​set to 0 except for the Y position, which is set to a hide position (209).
+The SCREEN function writes the same configuration from the different tables used in the MSX system (VRAM positioning) to the VDP registers.
 
-It doesn't set the MSX system font patterns in text modes (TEXT1 or GRAPHIC1). 
-You'll need to copy the tileset required for your program to VRAM.
+All screen modes will be initialized with the pattern name table set to 0, just like the CLS function. 
+It's important to note that by default, the BIOS initializes the GRAPHIC2 and MULTICOLOR modes with consecutive values ​​(used to display a graphic without using repeated tiles). 
+This is to prevent clutter from displaying previous graphics. For when you need this functionality, the SortG2map or SortMCmap functions have been added.
 
-It's also important to note that, in GRAPHIC2 (Screen 2) and MULTICOLOR (Screen 3) modes, 
-the name table will not be initialized with consecutive values ​​(usually used to display a graphic without using repeated tiles). 
-For this case, you can use the SortG2map or SortMCmap functions.
+The SCREEN function will initialize the sprite attribute table with all values ​​set to 0, except for the Y position, which is set to a hidden position (209).
 
-The ink and background colors of the COLOR function are only useful in text mode, as the BIOS uses these values ​​to initialize the color table for the other modes. 
-In all other modes, you can use this function to adjust the screen border color.
+It does not set the MSX system font patterns in text modes (TEXT1 or GRAPHIC1). 
+It is assumed that the programmer will be the one to initialize the tileset for the different screens that make up the application, thus avoiding double-writing large blocks of VRAM.
+
+The color and background colors of the COLOR function are only useful in Text1 mode, as in other modes the BIOS uses these values ​​to initialize the color table. 
+For these screen modes, it will only be useful for setting the screen border color. 
+The COLOR function writes the given values ​​to the system variables: FORCLR, BAKCLR, and BDRCLR.
 
 Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
 If you want to adapt this library to another computer, you would need to remove it or move it to available memory.

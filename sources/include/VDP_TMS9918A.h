@@ -165,14 +165,14 @@ Sprite hiding coordinates
 SCREEN
 Description:
 		Initializes the display to one of the four standardized modes on the MSX.
-		- T1 and G1 modes are initialized the map (Pattern Name Table) with 
-		  value 0. 
-		- In Graphic2 and MultiColor modes are initialized in an orderly manner 
-		  (as in MSX BASIC) to be able to display an image directly.
-		- In the graphic modes the sprites are initialized. 
+		- All screen modes will be initialized with the pattern name table set 
+		  to 0, just like the CLS function.  
+		- Initialization of the color table in GRAPHIC1 mode 
+		  (based on the values ​​previously given by the COLOR function).
+		- Initializing the Sprite Attribute Table (OAM) in graphic modes.
 		
 Input:	[char] number of screen mode
-			0 = TextMode1
+			0 = Text1
 			1 = Graphic1
 			2 = Graphic2
 			3 = MultiColor
@@ -186,7 +186,7 @@ void SCREEN(char mode);
 SortG2map 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a G2 (256x192px) image.
+		Designed to be able to display a Graphic2 (256x192px) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -198,7 +198,7 @@ void SortG2map(void);
 SortMCmap 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a MC (64x48 blocks) image.
+		Designed to be able to display a MultiColor (64x48 blocks) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -210,8 +210,7 @@ void SortMCmap(void);
 CLS 
 Description: 
 		 Clear Screen
-		 Fill the Name Table with the value 0
-		 Note: Does not clear the sprite attribute table (OAM)
+		 Fill VRAM Name Table with the value 0
 Input:	-
 Output:	-
 ============================================================================= */
@@ -224,11 +223,12 @@ COLOR
 Description:
 		Specifies the ink, foreground and background colors.
 		This function has different behaviors depending on the screen mode.
-		In T1 (text) mode, the color change is instantaneous except the 
+		In Text1 mode, the color change is instantaneous except the 
 		border color which has no effect.
-		In G1, G2 and MC modes, only the border color has an instant effect. 
-		Ink and background colors are only used when starting the screen with 
-		the SCREEN() function.
+		In Graphic1, Graphic2 and Multicolor modes, only the border color has 
+		an instant effect. 
+		Ink and background colors are only used when starting the screen in
+		Graphic1 mode.
 
 Input:	[char] ink color
 		[char] background color

@@ -27,7 +27,7 @@
 		- [4.1.3 CLS](#413-CLS)
 		- [4.1.4 SortG2map](#414-SortG2map)
 		- [4.1.5 SortMCmap](#415-SortMCmap)		
-	- [4.2 Access to the VDP](#42-Access-to-the-VDP)
+	- [4.2 Access to the VDP Registers](#42-Access-to-the-VDP-Registers)
 		- [4.2.1 GetVDP](#421-GetVDP)
 		- [4.2.2 SetVDP](#422-SetVDP)	
 	- [4.3 Access to video memory](#43-Access-to-video-memory)
@@ -60,8 +60,9 @@
 		- [4.5.11 GetBLOCKfromVRAM](#4511-GetBLOCKfromVRAM)		
 		- [4.5.12 GetSPRattrVADDR](#4512-GetSPRattrVADDR)
 		- [4.5.13 GetSpritePattern](#4513-GetSpritePattern)
-- [5 Examples](#5-Examples)
-- [6 References](#6-References)
+- [5 Tech notes](#5-Tech-notes)
+- [6 Code Example](#6-Code-Example)
+- [7 References](#7-References)
 
 
 <br/>
@@ -75,7 +76,7 @@
 
 C Library functions to work with the TMS9918A/28A/29A video processor.
 
-This library is designed to develop applications for MSX computers in any of the different environments available (ROM, MSXDOS or MSXBASIC), using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
+This library is designed to develop applications for MSX computers in any of the different environments available (ROM, MSX-DOS or MSX BASIC), using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
 
 It is optimized to offer the highest possible speed when using the TMS9918A VDP, especially in functions that work with data blocks (FillVRAM, CopyToVRAM and CopyFromVRAM). Fast read/write functions (FastVPOKE and FastVPEEK) have been added, which access the next used video memory cell.
 
@@ -188,6 +189,7 @@ WHITE		| 15
 <br/>
 
 ### 3.7 VDP base address tables 1
+
 Definition of the video memory addresses where the different graphic data tables are located.
 
 <table>
@@ -196,30 +198,43 @@ Definition of the video memory addresses where the different graphic data tables
 <tr><td>The sprite pattern and attribute tables are the same for GRAPHIC1, GRAPHIC2, and Multicolor modes.</td></tr>
 </table>
 
+<br/>
+
+#### Text1 (Screen 0)
+
 Label	| Value	| Description
 :---	| :---	| :---
 T1_MAP	| 0x0000	| T1 Name Table
 T1_PAT	| 0x0800	| T1 Pattern Table
-G1_MAP	| 0x1800	| G1 Name Table
-G1_PAT	| 0x0000	| G1 Pattern Table
-G1_COL	| 0x2000	| G1 Color Table
-G2_MAP	| 0x1800	| G2 Name Table
-G2_PAT	| 0x0000	| G2 Pattern Table
-G2_PAT_A	| 0x0000	| G2 Pattern Table Bank A
-G2_PAT_B	| 0x0800	| G2 Pattern Table Bank B
-G2_PAT_C	| 0x1000	| G2 Pattern Table Bank C
-G2_COL	| 0x2000	| G2 Color Table
-G2_COL_A	| 0x2000	| G2 Color Table Bank A
-G2_COL_B	| 0x2800	| G2 Color Table Bank B
-G2_COL_C	| 0x3000	| G2 Color Table Bank C
-MC_MAP	| 0x0800	| MC Name Table
-MC_PAT	| 0x0000	| MC Pattern Table <br/> (A tile contains the color data of 2x2 blocks)
-SPR_OAM	| 0x1B00	| Sprite Attribute Table (Object Attribute Memory)
-SPR_PAT	| 0x3800	| Sprite Pattern Table
 
 <br/>
 
-#### Example:
+#### Graphic1 (Screen 1)
+
+Label	| Value	| Description
+:---	| :---	| :---
+G1_MAP	| 0x1800	| Name Table
+G1_PAT	| 0x0000	| Pattern Table
+G1_COL	| 0x2000	| Color Table
+G2_MAP	| 0x1800	| Name Table
+G2_PAT	| 0x0000	| Pattern Table
+
+<br/>
+
+#### Graphic2 (Screen 2)
+
+Label	| Value	| Description
+:---	| :---	| :---
+G2_PAT_A	| 0x0000	| Pattern Table Bank A
+G2_PAT_B	| 0x0800	| Pattern Table Bank B
+G2_PAT_C	| 0x1000	| Pattern Table Bank C
+G2_COL	| 0x2000	| Color Table
+G2_COL_A	| 0x2000	| Color Table Bank A
+G2_COL_B	| 0x2800	| Color Table Bank B
+G2_COL_C	| 0x3000	| Color Table Bank C
+
+
+**Example:**
 
 ```c
 	//Copy a tileset patterns to the three banks of the Screen2 graphic mode
@@ -227,6 +242,24 @@ SPR_PAT	| 0x3800	| Sprite Pattern Table
 	CopyToVRAM((unsigned int) TilesetDATA_PAT,G2_PAT_B,0x800);
 	CopyToVRAM((unsigned int) TilesetDATA_PAT,G2_PAT_C,0x800);
 ```
+
+<br/>
+
+#### MultiColor (Screen 3)
+
+Label	| Value	| Description
+:---	| :---	| :---
+MC_MAP	| 0x0800	| Name Table
+MC_PAT	| 0x0000	| Pattern Table <br/> (A tile contains the color data of 2x2 blocks)
+
+<br/>
+
+#### Spites
+
+Label	| Value	| Description
+:---	| :---	| :---
+SPR_OAM	| 0x1B00	| Sprite Attribute Table (Object Attribute Memory)
+SPR_PAT	| 0x3800	| Sprite Pattern Table
 
 <br/>
 
@@ -242,13 +275,14 @@ Based on the BASE instruction of MSX BASIC.
 
 <br/>
 
-#### Screen0 T1 TXT40
+#### Text1 (Screen 0)
+
 Label	| Value		| Description
 :---	| :---		| :---
 BASE0	| 0x0000	| Name Table
 BASE2	| 0x0800	| Pattern Table
 
-#### Screen1 G1 TXT32
+#### Graphic1 (Screen 1)
 Label	| Value		| Description
 :---	| :---		| :---
 BASE5	| 0x1800	| Name Table
@@ -257,7 +291,7 @@ BASE7	| 0x0000	| Pattern Table
 BASE8	| 0x1B00	| Sprite Attribute Table (OAM^*^)
 BASE9	| 0x3800	| Sprite Pattern Table
 
-#### Screen2 G2 GRAPH1
+#### Graphic2 (Screen 2)
 Label	| Value		| Description
 :---	| :---		| :---
 BASE10	| 0x1800	| Name Table
@@ -266,7 +300,7 @@ BASE12	| 0x0000	| Pattern Table
 BASE13	| 0x1B00	| Sprite Attribute Table (OAM^*^)
 BASE14	| 0x3800	| Sprite Pattern Table
 
-#### Screen3 MC GRAPH2
+#### Multicolor (Screen 3)
 Label	| Value		| Description
 :---	| :---		| :---
 BASE15	| 0x0800	| Name Table
@@ -312,11 +346,16 @@ BANK2	| 0x1000
 
 <table>
 <tr><th colspan=3 align="left">SCREEN</th></tr>
-<tr><td colspan=3>Sets the display mode of the screen.</td></tr>
+<tr><td colspan=3>Initializes the display to one of the four standardized modes on the MSX.<ul>
+<li>All screen modes will be initialized with the pattern name table set to 0, just like the CLS function.</li>  
+<li>Initialization of the color table in GRAPHIC1 mode (based on the values ​​previously given by the COLOR function).</li>
+<li>Initializing the Sprite Attribute Table (OAM) in graphic modes.</li></ul></td></tr>
 <tr><th>Function</th><td colspan=2>SCREEN(mode)</td></tr>
-<tr><th>Input</th><td>char</td><td>Screen mode (0-3)<br/>0 = TextMode1<br/>1 = Graphic1<br/>2 = Graphic2<br/>3 = MultiColor</td></tr>
+<tr><th>Input</th><td>char</td><td>Screen mode (0-3)<br/>0 = Text1<br/>1 = Graphic1<br/>2 = Graphic2<br/>3 = MultiColor</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
+
+You can use the definitions: [3.3 Screen Modes](#33-Screen-Modes)
 
 ##### Examples:
 
@@ -328,45 +367,24 @@ BANK2	| 0x1000
 	SCREEN(GRAPHIC1);
 ```
 
-##### Notes:
-
-It's important to note that the SCREEN function doesn't behave like the BIOS functions with the same purpose (CHGMOD, INITXT, INIGRP, etc.). 
-This is because the graphics will be provided by the developer, and there's no need to duplicate this work.
-
-This function writes the same configuration of the different tables used in the MSX system to the VDP registers and fills the VRAM name table with the value 0.
-
-The sprite attribute table is also initialized with all values ​​set to 0 except for the Y position, which is set to a hide position (209).
-
-It doesn't set the MSX system font patterns in text modes (TEXT1 or GRAPHIC1). 
-You'll need to copy the tileset required for your program to VRAM.
-
-It's also important to note that, in GRAPHIC2 (Screen 2) and MULTICOLOR (Screen 3) modes, 
-the name table will not be initialized with consecutive values ​​(usually used to display a graphic without using repeated tiles). 
-For this case, you can use the SortG2map or SortMCmap functions.
-
-The ink and background colors of the COLOR function are only useful in text mode, as the BIOS uses these values ​​to initialize the color table for the other modes. 
-In all other modes, you can use this function to adjust the screen border color.
-
-Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
-If you want to adapt this library to another computer, you would need to remove it or move it to available memory.
-
 <br/>
 
 #### 4.1.2 COLOR
 
 <table>
 <tr><th colspan=3 align="left">COLOR</th></tr>
-<tr><td colspan=3>
-Put the ink, background and foreground colors.<br/>This function has different behaviors depending on the screen mode.<br/>
+<tr><td colspan=3>Put the ink, background and foreground colors.<br/>This function has different behaviors depending on the screen mode.<br/>
 In Text1 mode, the color change is instantaneous except the border color which has no effect.<br/>
-In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant effect. Ink and background colors are only used when starting the screen with the SCREEN() function.
-</td></tr>
+In Graphic1, Graphic2 and MultiColor modes, only the border color has an instant effect.<br/>
+Ink and background colors are only used when starting the screen with the SCREEN() function.</td></tr>
 <tr><th>Function</th><td colspan=2>COLOR(ink, background, border)</td></tr>
 <tr><th rowspan=3>Input</th><td>char</td><td>Ink color (0-15)</td></tr>
 <tr><td>char</td><td>Background color (0-15)</td></tr>
 <tr><td>char</td><td>Border color (0-15)</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
+
+You can use the definitions: [3.6 Color Names](#36-Color-Names)
 
 ##### Examples:
 
@@ -386,7 +404,7 @@ In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant
 
 <table>
 <tr><th colspan=3 align="left">CLS</th></tr>
-<tr><td colspan=3>Clear Screen. Fill in 0, all Name Table.</td></tr>
+<tr><td colspan=3>Clear Screen.<br/>Fill VRAM Name Table with the value 0.</td></tr>
 <tr><th>Function</th><td colspan=2>CLS()</td></tr>
 <tr><th>Input</th><td colspan=2>-</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -404,7 +422,7 @@ In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant
 
 <table>
 <tr><th colspan=3 align="left">SortG2map</th></tr>
-<tr><td colspan=3>Initializes the pattern name table, with sorted values.<br/>Designed to be able to display a G2 (256x192px) image.</td></tr>
+<tr><td colspan=3>Initializes the pattern name table, with sorted values.<br/>Designed to be able to display a Graphic2 (256x192px) image.</td></tr>
 <tr><th>Function</th><td colspan=2>SortG2map()</td></tr>
 <tr><th>Input</th><td colspan=2>-</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -423,7 +441,7 @@ In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant
 
 <table>
 <tr><th colspan=3 align="left">SortMCmap</th></tr>
-<tr><td colspan=3>Initializes the pattern name table, with sorted values.<br/>Designed to be able to display a MC (64x48 blocks) image.</td></tr>
+<tr><td colspan=3>Initializes the pattern name table, with sorted values.<br/>Designed to be able to display a MultiColor (64x48 blocks) image.</td></tr>
 <tr><th>Function</th><td colspan=2>SortMCmap()</td></tr>
 <tr><th>Input</th><td colspan=2>-</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -440,7 +458,7 @@ In GRAPHIC1, GRAPHIC2 and Multicolor modes, only the border color has an instant
 
 
 ---
-### 4.2 Access to the VDP
+### 4.2 Access to the VDP Registers
 
 #### 4.2.1 GetVDP
 
@@ -1197,20 +1215,67 @@ __endasm;
 
 <br/>
 
-
 ---
 
-## 5 Examples
- 
-The project includes several examples that I have used to test the library and that can help you learn how to use this library.
+## 5 Tech notes
 
-You can find them in this project in the [`../examples/`](examples/) folder.
+It's important to note that some functions in this library don't work the same as their counterparts in the BIOS. 
+This is because we've tried to make this library as fast and compact as possible.
+
+Below are the similarities and differences between the BIOS functions and those in this library:
+
+The SCREEN function writes the same configuration from the different tables used in the MSX system (VRAM positioning) to the VDP registers.
+
+All screen modes will be initialized with the pattern name table set to 0, just like the CLS function. 
+It's important to note that by default, the BIOS initializes the GRAPHIC2 and MULTICOLOR modes with consecutive values ​​(used to display a graphic without using repeated tiles). 
+This is to prevent clutter from displaying previous graphics. For when you need this functionality, the SortG2map or SortMCmap functions have been added.
+
+The SCREEN function will initialize the sprite attribute table with all values ​​set to 0, except for the Y position, which is set to a hidden position (209).
+
+It does not set the MSX system font patterns in text modes (TEXT1 or GRAPHIC1). 
+It is assumed that the programmer will be the one to initialize the tileset for the different screens that make up the application, thus avoiding double-writing large blocks of VRAM.
+
+The color and background colors of the COLOR function are only useful in Text1 mode, as in other modes the BIOS uses these values ​​to initialize the color table. 
+For these screen modes, it will only be useful for setting the screen border color. 
+The COLOR function writes the given values ​​to the system variables: FORCLR, BAKCLR, and BDRCLR.
+
+Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
+If you want to adapt this library to another computer, you would need to remove it or move it to available memory.
 
 <br/>
 
+---
+
+## 6 Code Example
+ 
 ### Example 1
 
-This example is very simple. Shows a use case for initializing a screen in graphics mode 1.
+In this source code you will find a simple example of how to use this library.
+
+Requires the following items:
+- Startup file for MSX 8/16K ROM [crt0_MSX816kROM4000](https://github.com/mvac7/SDCC_startup_MSX816kROM4000)
+- [VDP_TMS9918A Library](https://github.com/mvac7/SDCC_VDP_TMS9918A_Lib)
+
+<br/>
+
+And you need the following applications to compile and generate the final ROM:
+- [Small Device C Compiler (SDCC) v4.4](http://sdcc.sourceforge.net/)
+- [Hex2bin v2.5](http://hex2bin.sourceforge.net/)
+
+<br/>
+
+This example performs the following actions:
+1. Initializes the screen to Graphic1 mode (Screen 1) with 8x8 sprites.
+1. Copy the tileset included in the MSX BIOS to the VRAM Pattern Table using the `CopyToVRAM` function.
+1. Dumps the data from the testmap_MAP array to the VRAM Pattern Name Table using the `CopyToVRAM` function.
+1. Copy a tile pattern (tile 2) from VRAM to RAM using the `CopyFromVRAM` function.
+1. Copy the pattern to the Sprite Pattern Table (from RAM to VRAM) using the `CopyToVRAM` function.
+1. Display a Sprite by writing directly to the VRAM Sprite Attribute Table using the `VPOKE` and `FastVPOKE` functions.
+1. Display a Sprite using the `PUTSPRITE` function.
+
+<br/>
+
+![Example screenshot](pics/EXAMPLE1_01.png)
 
 
 #### Source code:
@@ -1278,32 +1343,33 @@ const char testmap_MAP[]={
 
 
 
-void main(void) 
+void main(void)
 {
 	unsigned int BIOSfont = *(unsigned int *) CGTABL; //get BIOS font address
 	char TheSprite[8];			//buffer for one Sprite patter
 		
 	COLOR(15,4,5);
- 	SCREEN(GRAPHIC1);			// Set Screen 1
+ 	SCREEN(GRAPHIC1);			//Set Screen 1
 	SetSpritesSize(SPRITES8x8);
+	SetSpritesZoom(1);			//zoom x2
 	
-	// Copy MSX BIOS font to VRAM Pattern Table
+	//Copy MSX BIOS font to VRAM Pattern Table
 	CopyToVRAM(BIOSfont,G1_PAT,0x800);
 		
-	// Copy a block of characters (tiles) to VRAM Name Table
+	//Copy a block of characters (tiles) to VRAM Name Table
 	CopyToVRAM((unsigned int) testmap_MAP,G1_MAP+32,544);
 	
-	// Copy a 8x8 tile Pattern to Sprite Pattern Table
+	//Copy a tile Pattern (tile 2) to Sprite Pattern Table
 	CopyFromVRAM(G1_PAT+16,(unsigned int) TheSprite,8);	//Copy VRAM to RAM
 	CopyToVRAM((unsigned int) TheSprite,SPR_PAT,8);		//Copy RAM to VRAM
 	
-	// Puts a Sprite on plane 0
+	//Puts a Sprite on plane 0
 	VPOKE(SPR_OAM,156);			//y
 	FastVPOKE(124);				//x
 	FastVPOKE(0);				//sprite pattern
 	FastVPOKE(LIGHT_YELLOW);	//color
 	
-	PUTSPRITE(1,140,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
+	PUTSPRITE(1,148,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
 
 // execute BIOS CHGET - One character input (waiting)
 __asm call 0x009F __endasm;	
@@ -1347,7 +1413,7 @@ It is the same as Example 2 but for an MSX-DOS environment.
 
 ---
 
-## 6 References
+## 7 References
   
 - Texas Instruments [TMS9918A application manual](http://map.grauw.nl/resources/video/texasinstruments_tms9918.pdf) `PDF`
 - Texas Instruments [VDP Programmer’s Guide](http://map.grauw.nl/resources/video/ti-vdp-programmers-guide.pdf) `PDF`

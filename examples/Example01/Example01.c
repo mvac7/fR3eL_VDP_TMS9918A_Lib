@@ -60,32 +60,33 @@ const char testmap_MAP[]={
 
 
 
-void main(void) 
+void main(void)
 {
 	unsigned int BIOSfont = *(unsigned int *) CGTABL; //get BIOS font address
 	char TheSprite[8];			//buffer for one Sprite patter
 		
 	COLOR(15,4,5);
- 	SCREEN(GRAPHIC1);			// Set Screen 1
+ 	SCREEN(GRAPHIC1);			//Set Screen 1
 	SetSpritesSize(SPRITES8x8);
+	SetSpritesZoom(1);			//zoom x2
 	
-	// Copy MSX BIOS font to VRAM Pattern Table
+	//Copy MSX BIOS font to VRAM Pattern Table
 	CopyToVRAM(BIOSfont,G1_PAT,0x800);
 		
-	// Copy a block of characters (tiles) to VRAM Name Table
+	//Copy a block of characters (tiles) to VRAM Name Table
 	CopyToVRAM((unsigned int) testmap_MAP,G1_MAP+32,544);
 	
-	// Copy a 8x8 tile Pattern to Sprite Pattern Table
+	//Copy a tile Pattern (tile 2) to Sprite Pattern Table
 	CopyFromVRAM(G1_PAT+16,(unsigned int) TheSprite,8);	//Copy VRAM to RAM
 	CopyToVRAM((unsigned int) TheSprite,SPR_PAT,8);		//Copy RAM to VRAM
 	
-	// Puts a Sprite on plane 0
+	//Puts a Sprite on plane 0
 	VPOKE(SPR_OAM,156);			//y
 	FastVPOKE(124);				//x
 	FastVPOKE(0);				//sprite pattern
 	FastVPOKE(LIGHT_YELLOW);	//color
 	
-	PUTSPRITE(1,140,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
+	PUTSPRITE(1,148,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
 
 // execute BIOS CHGET - One character input (waiting)
 __asm call 0x009F __endasm;	
