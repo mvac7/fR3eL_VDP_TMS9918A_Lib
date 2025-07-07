@@ -52,13 +52,16 @@ char GetVFrequency(void);
 void VLOCATE(char column, char line);
 void VPRINT(char* text);
 
+void DrawHorzLine(char tile, char size);
 void DrawBox(char width, char height);
 void DrawFillBox(char width, char height, char tile);
+
+void ClearVRAM(void);
 
 void ShowMenu(void);
 void Menu(void);
 
-void testCOLOR(void);
+//void testCOLOR(void);
 
 void testSCREEN0(void);
 void testSCREEN1(void);
@@ -72,7 +75,6 @@ void testVpeekVpoke(void);
 
 void testSprites(void);
 void showSprites(char offset);
-//void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 char isSPRITE16px(void);
 
 //void ChangeVDPstatus(void);
@@ -85,15 +87,12 @@ char isSPRITE16px(void);
 // ---------------------------------------------------------------------------- Constants
 const char text01[] = "Test VDP_TMS9918A Lib v1.5"; 
 
-const char textMENU[6][30] = {
+const char textMENU[5][30] = {
 "[F1] Test TEXT1     (Screen0)",
 "[F2] Test GRAPHIC1  (Screen1)",
 "[F3] Test GRAPHIC2  (Screen2)",
 "[F4] Test MULTICOLOR(Screen3)",
-"[F5] Test Sprites            ",
-"[BS] Test COLOR()            "};
-
-//"[SEL] Enable/Disable Screen  "};
+"[F5] Test Sprites            "};
 
 const char text10[] = "Test CLS()";
 
@@ -248,6 +247,14 @@ const char font01Bold_sc06x8_COL[]={
 0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,
 0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
+// Tileset Color Data - Mode:G1
+// Size=32
+const char tileset_06x8_COL2[]={
+0x94,0x94,0x34,0x34,0xB4,0xB4,0x74,0x74,
+0xF4,0xF4,0xF4,0xF4,0xE4,0xE4,0xE4,0xE4,
+0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,
+0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4};
+
 
 
 const char sprcol[8]={12,2,3,7,6,8,9,14};
@@ -363,32 +370,41 @@ __endasm;
 
 
 
+
+void DrawHorzLine(char tile, char size)
+{
+	char i;
+	for(i=0;i<size;i++) FastVPOKE(tile);
+}
+
+
+
 void DrawBox(char width, char height)
 {
 	char box_winside = width-2;
 	char box_hinside = height-2;
 	char nextLine;
 		
-	char i,o;
+	char i;
 	
 	if (isTxtMode()) nextLine = 41-width;
 	else nextLine = 33-width;
 	
 	VPOKE(vprint_addr++,24);
-	for(i=0;i<box_winside;i++) FastVPOKE(23);
+	DrawHorzLine(23,box_winside);
 	FastVPOKE(25);
 	vprint_addr+=box_winside+nextLine;
 	
-	for(o=1;o<box_hinside;o++)
+	for(i=1;i<box_hinside;i++)
 	{		
 		VPOKE(vprint_addr++,22);
-		for(i=0;i<box_winside;i++) FastVPOKE(32);
+		DrawHorzLine(32,box_winside);
 		FastVPOKE(22);
 		vprint_addr+=box_winside+nextLine;
 	}		
 	
 	VPOKE(vprint_addr++,26);
-	for(i=0;i<box_winside;i++) FastVPOKE(23);
+	DrawHorzLine(23,box_winside);
 	FastVPOKE(27);	
 }
 
@@ -396,16 +412,16 @@ void DrawBox(char width, char height)
 
 void DrawFillBox(char width, char height, char tile)
 {
-	char i,o;
+	char i;
 	char nextLine;
 	
 	if (isTxtMode()) nextLine = 40-width;
 	else nextLine = 32-width;
 		
-	for(o=0;o<height;o++)
+	for(i=0;i<height;i++)
 	{
 		SetVDPtoWRITE(vprint_addr);
-		for(i=0;i<width;i++) FastVPOKE(tile);
+		DrawHorzLine(tile,width);
 		vprint_addr+=width+nextLine;
 	}
 }
@@ -413,45 +429,45 @@ void DrawFillBox(char width, char height, char tile)
 
 
 /* -----------------------------------------------------------------------------
-   GetVFrequency
-  
-   Get Video Frequency 
-   for ROM (except 48K) or BASIC environments (page 0 = BIOS)
-   Input: ---
-   Output: 0=60Hz(NTSC), 1=50Hz(PAL) 
+GetVFrequency
+
+Get Video Frequency 
+for ROM (except 48K) or BASIC environments (page 0 = BIOS)
+Input:	---
+Output:	0=60Hz(NTSC), 1=50Hz(PAL) 
 ----------------------------------------------------------------------------- */  
 char GetVFrequency(void) __naked
 {
 __asm
-  push IX
+//	push IX
 
 ; -----------------------------------
-  ld   A,(#0x002D)  ;MSXVER=002D MSX version number (0=MSX,1=MSX2,2=MSX2+,3=TurboR)
-  or   A
-  jr   NZ,readHZfromVDP  //IF A!=0
+	ld   A,(#0x002D)	//MSXVER=002D MSX version number (0=MSX,1=MSX2,2=MSX2+,3=TurboR)
+	or   A
+	jr   NZ,readHZfromVDP	//IF A!=0
   
-;in the MSX1, the information about the video frequency is in a system variable
-  ld   A,(#0x002B)  ;MSXROM1
-  bit  7,A          ;Default interrupt frequency (0=60Hz, 1=50Hz)
-  jr   Z,VFreq_isNTSC
-  jr   VFreq_isPAL   
+//in the MSX1, the information about the video frequency is in a system variable
+	ld   A,(#0x002B)	//MSXROM1
+	bit  7,A			//Default interrupt frequency (0=60Hz, 1=50Hz)
+	jr   Z,VFreq_isNTSC
+	jr   VFreq_isPAL   
 
-;If it is run on an MSX2 or higher, we can check the video frequency in the VDP registers
+//If it is run on an MSX2 or higher, we can check the video frequency in the VDP registers
 readHZfromVDP:
-;look at the system variable that contains the VDP registry value
-  ld   A,(0xFFE8)    ;(RG9SAV) Mirror of VDP register 9
-  bit  1,A           ;(0=60Hz, 1=50Hz)  
-  jr   Z,VFreq_isNTSC
+//look at the system variable that contains the VDP registry value
+	ld   A,(0xFFE8)		//(RG9SAV) Mirror of VDP register 9
+	bit  1,A			//(0=60Hz, 1=50Hz)  
+	jr   Z,VFreq_isNTSC
   
 VFreq_isPAL:
-  ld   A,#1
-  pop  IX
-  ret
+	ld   A,#1
+//	pop  IX
+	ret
   
 VFreq_isNTSC:  
-  xor  A
-  pop  IX  
-  ret  
+	xor  A
+//	pop  IX  
+	ret  
 __endasm;
 }
 
@@ -486,23 +502,17 @@ void VPRINT(char* text)
 
 
 
-/*void PUTSPRITE(char plane, char x, char y, char color, char pattern)
-{
-	uint vaddr = BASE8 + (plane *4);  //OAM = BASE8 = BASE13 
-
-	VPOKE(y,vaddr);
-	FastVPOKE(x);
-	if (isSPRITE16px()>0) pattern=pattern*4;
-	FastVPOKE(pattern);
-	FastVPOKE(color);  
-}*/
-
-
-
 char isSPRITE16px(void)
 {
 	char A = *(unsigned int *) (RG0SAV+1);
 	return A & 2;
+}
+
+
+
+void ClearVRAM(void)
+{	
+	FillVRAM(0,0x3FFF,0x00);
 }
 
 
@@ -536,7 +546,7 @@ void ShowMenu(void)
 	VLOCATE(0,17);
 	DrawBox(32,6);
 		
-	for(i=0;i<6;i++)
+	for(i=0;i<5;i++)
 	{
 		VLOCATE(1,6+i);
 		VPRINT(textMENU[i]);
@@ -570,7 +580,6 @@ void Menu(void)
 		
 		if(time==0)
 		{
-			testCOLOR();
 			testSCREEN0();
 			testSCREEN1();
 			testSCREEN2();
@@ -608,7 +617,7 @@ void Menu(void)
 				//if (!(keyPressed&Bit2)) {Row7pressed=true;}; // [ESC]
 				//if (!(keyPressed&Bit3)) {Row7pressed=true;}; // [TAB]
 				//if (!(keyPressed&Bit4)) {Row7pressed=true;}; // [STOP]
-				if (!(keyPressed&Bit5)) {Row7pressed=true;testCOLOR();ShowMenu();}; // [BS]
+				//if (!(keyPressed&Bit5)) {Row7pressed=true;testCOLOR();ShowMenu();}; // [BS]
 				//if (!(keyPressed&Bit6)) {Row7pressed=true;ChangeVDPstatus();}; // [SELECT]
 				//if (!(keyPressed&Bit7)) {Row7pressed=true;}; // [RETURN]
 			}      
@@ -622,7 +631,7 @@ void Menu(void)
 
 
 // TEST COLOR  #################################################################
-void testCOLOR(void)
+/*void testCOLOR(void)
 {
 	char i;
 
@@ -651,15 +660,17 @@ void testCOLOR(void)
 		WAIT(15);
 	}
 	WAIT(150);
-}
+}*/
 
 
 
 
 
-// TEST SCREEN 0 ###############################################################
+// ############################################################### TEST SCREEN 0
 void testSCREEN0(void)
 {
+	ClearVRAM();
+		
 	COLOR(WHITE,DARK_GREEN,0);    
 	SCREEN(0);
 
@@ -680,12 +691,14 @@ void testSCREEN0(void)
 
 
 
-// TEST SCREEN 1 ###############################################################
+// ############################################################### TEST SCREEN 1
 void testSCREEN1(void)
 {
 	char i;
+	
+	ClearVRAM();
 
-	COLOR(1,14,5);    
+	COLOR(5,4,1);    
 	SCREEN(1);
 
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,G1_PAT,128*8); 
@@ -703,10 +716,12 @@ void testSCREEN1(void)
 	foreground, as in VDP register 7). The colors are assigned to the BG Tiles as
 	follows: Tiles 00..07 share the first color, tiles 08..0F share the second 
 	color, etc, and tiles F8..FF share the last color.*/
-	FillVRAM(G1_COL,32,0xF4);
-
+	CopyToVRAM((uint) tileset_06x8_COL2,G1_COL,32);
+	//FillVRAM(G1_COL,32,0xF4);
+	
 	WAIT(100);
 
+	//test fill VRAM 
 	testFill();
 	WAIT(100);
 	
@@ -715,11 +730,13 @@ void testSCREEN1(void)
 
 
 
-// TEST SCREEN 2 ###############################################################
+// ############################################################### TEST SCREEN 2
 void testSCREEN2(void)
 {
 	unsigned int i;
 	char value=0;
+	
+	ClearVRAM();
 
 	COLOR(0,14,1);    
 	SCREEN(2);
@@ -764,61 +781,24 @@ void testSCREEN2(void)
 	WAIT(120);
 	
 	
-/*
-	//bank 1
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12+BANK1,128*8);
-	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
-
-	//bank 2
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12+BANK2,128*8);
-	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
-	WAIT(50);
-	//END copy
-
-
-	//test CopyFromVRAM
-	VLOCATE(0,5);
-	VPRINT("Test CopyFromVRAM()");
-	//copy VRAM to RAM
-	CopyFromVRAM(BASE12+(32*8),0xE000,64*8);
-	WAIT(50);
-
-	//copy RAM to VRAM
-	CopyToVRAM(0xE000,BASE12+0x600,64*8);   
-	FillVRAM(BASE11+0x600,64*8,0xFE); //colors
-	WAIT(120);
-	//END CopyFromVRAM
-*/
-
 	//test fill VRAM  
 	testFill();
 	WAIT(100);
 	
 	testCLS();
-/*	FillVRAM(G1_MAP, 0x300, 203);
-	VLOCATE(0,0);
-	VPRINT(text10);		//">Test CLS() SCREEN 1");
-	TestClear(1);*/
-	
-/*	CLS();
-	WAIT(100);
-	
-	VLOCATE(12,11);
-	VPRINT(text10);
-	WAIT(150);*/
-	
-	FillVRAM(BASE12,0x1800,0x00);	//clear pattern data
-	FillVRAM(BASE11,0x1800,0xF4);	//clear color data
+
 }
 
 
 
-// TEST SCREEN 3 ###############################################################
+// ############################################################### TEST SCREEN 3
 void testSCREEN3(void)
 {
 	char value=0;
 	char loop;
 	char loopLine;
+	
+	ClearVRAM();
 
 	COLOR(0,4,CYAN);
 	SCREEN(1);
@@ -955,7 +935,7 @@ void testFill(void)
 
 
 
-// TEST Sprites ################################################################
+// ################################################################ TEST Sprites
 void testSprites(void)
 {
 	COLOR(0,0,1);
@@ -1002,24 +982,27 @@ void testSprites(void)
 
 
 
-// TEST PUTSPRITE  #############################################################
+// ############################################################# TEST PUTSPRITE
 void showSprites(char offset)
 {
-	char X=2,Y=3;
+	char X=2,Y=2;
 	char i=0;
+	char sprpat=0;
 	
-	VLOCATE(7,11);
-	DrawBox(18,11);
+	/*VLOCATE(7,11);
+	DrawBox(18,11);*/
 
-	for(i=0;i<8;i++)
+	for(i=0;i<16;i++)
 	{
-		PUTSPRITE(i, X*32, Y*32, sprcol[i], i+offset);
+		PUTSPRITE(i, X*32, Y*32, sprcol[sprpat], sprpat+offset);
+		sprpat++;
 		X++;
 		if(X==6)
 		{
 			X=2;
 			Y++;
 		}
+		if (sprpat>7) sprpat=0;
 	}
 }
 

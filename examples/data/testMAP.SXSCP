@@ -1,5 +1,5 @@
-<msxOpenDocument app="tMSgfX devtool" version="0.9.16.0">
-  <info ProjectName="New Project" Name="New Subproject" Version="0" Author="" Group="" StartDate="638412192000000000" LastUpdate="638412192000000000">
+<msxOpenDocument app="tMSgfX devtool" version="0.9.19.0">
+  <info ProjectName="VDP_TMS9918A Lib" Name="New Subproject" Version="0" Author="mvac7" Group="303bcn" StartDate="638412192000000000" LastUpdate="638874432000000000">
     <Description>
     </Description>
   </info>
@@ -7,6 +7,270 @@
     <screen name="screen" ScreenMode="1" SpriteSize="2" SpriteZoom="0" paletteID="0" ForegroundColor="15" BackgroundColor="4" MapID="49943051" OneBANK="True" TilesetA_ID="5252561" TilesetB_ID="5252561" TilesetC_ID="5252561" SpritesetID="0" OAMID="0" />
   </screens>
   <gfx>
+    <SourceCodeFormat LanguageCode="1" NumeralSystem="7" LineSizeIndex="3" CompressType="0" DataLabel="font02Bold_SC0(6x8)_TSET">
+      <Assembler DataByteCommand="db" DataWordCommand="dw" />
+      <C UnsignedByteTypeDef="const char" SignedByteTypeDef="const signed char" />
+      <BASIC commentInstruction="REM" dataInstruction="DATA" FirstLineNumber="1000" Increment="10" remove0="False" />
+    </SourceCodeFormat>
+    <tileset id="7508615" name="font02Bold_SC0(6x8)_TSET" mode="1" foregroundColor="15" backgroundColor="1">
+      <colors>94943434B4B47474F4F4F4F4E4E4E4E4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4</colors>
+      <tile index="0" gfxData="0000000000000000" />
+      <tile index="1" gfxData="FFFFFFFFFFFFFFFF" />
+      <tile index="2" gfxData="AA55AA55AA55AA55" />
+      <tile index="3" gfxData="000103070F1F3F7F" />
+      <tile index="4" gfxData="80C0E0F0F8FCFEFF" />
+      <tile index="5" gfxData="7F3F1F0F07030100" />
+      <tile index="6" gfxData="FFFEFCF8F0E0C080" />
+      <tile index="7" gfxData="0102040810204080" />
+      <tile index="8" gfxData="8040201008040201" />
+      <tile index="9" gfxData="FF00000000000000" />
+      <tile index="10" gfxData="00000000000000FF" />
+      <tile index="11" gfxData="8080808080808080" />
+      <tile index="12" gfxData="0101010101010101" />
+      <tile index="13" gfxData="0000000000000000" />
+      <tile index="14" gfxData="0000000000000000" />
+      <tile index="15" gfxData="0000000000000000" />
+      <tile index="16" gfxData="0000000000000000" />
+      <tile index="17" gfxData="181818FFFF000000" />
+      <tile index="18" gfxData="000000FFFF181818" />
+      <tile index="19" gfxData="181818F8F8181818" />
+      <tile index="20" gfxData="1818181F1F181818" />
+      <tile index="21" gfxData="181818FFFF181818" />
+      <tile index="22" gfxData="1818181818181818" />
+      <tile index="23" gfxData="000000FFFF000000" />
+      <tile index="24" gfxData="0000000F1F181818" />
+      <tile index="25" gfxData="000000F0F8181818" />
+      <tile index="26" gfxData="1818181F0F000000" />
+      <tile index="27" gfxData="181818F8F0000000" />
+      <tile index="28" gfxData="0000000000000000" />
+      <tile index="29" gfxData="0000000000000000" />
+      <tile index="30" gfxData="0000000000000000" />
+      <tile index="31" gfxData="0000000000000000" />
+      <tile index="32" gfxData="0000000000000000" />
+      <tile index="33" gfxData="0030303030003000" />
+      <tile index="34" gfxData="0050500000000000" />
+      <tile index="35" gfxData="0050F850F8500000" />
+      <tile index="36" gfxData="20F8A0F828F82000" />
+      <tile index="37" gfxData="00CCD8306CCC0000" />
+      <tile index="38" gfxData="0060B0F4D8F40000" />
+      <tile index="39" gfxData="0030600000000000" />
+      <tile index="40" gfxData="1830303030301800" />
+      <tile index="41" gfxData="3018181818183000" />
+      <tile index="42" gfxData="00B478FC78B40000" />
+      <tile index="43" gfxData="003030FC30300000" />
+      <tile index="44" gfxData="0000000030302000" />
+      <tile index="45" gfxData="000000F800000000" />
+      <tile index="46" gfxData="0000000030300000" />
+      <tile index="47" gfxData="000C183060C00000" />
+      <tile index="48" gfxData="70D8D8D8D8700000" />
+      <tile index="49" gfxData="3070303030780000" />
+      <tile index="50" gfxData="F01870C0C0F80000" />
+      <tile index="51" gfxData="F018701818F00000" />
+      <tile index="52" gfxData="D8D8F81818180000" />
+      <tile index="53" gfxData="F8C0F01818F00000" />
+      <tile index="54" gfxData="70C0F0D8D8700000" />
+      <tile index="55" gfxData="F818306060600000" />
+      <tile index="56" gfxData="70D870D8D8700000" />
+      <tile index="57" gfxData="70D8D87818700000" />
+      <tile index="58" gfxData="0030300030300000" />
+      <tile index="59" gfxData="0030300030302000" />
+      <tile index="60" gfxData="0018306030180000" />
+      <tile index="61" gfxData="0000780078000000" />
+      <tile index="62" gfxData="0060301830600000" />
+      <tile index="63" gfxData="78CC0C1830003000" />
+      <tile index="64" gfxData="7884B4D4BC807800" />
+      <tile index="65" gfxData="70D8D8F8D8D80000" />
+      <tile index="66" gfxData="F0D8F0D8D8F00000" />
+      <tile index="67" gfxData="78C0C0C0C0780000" />
+      <tile index="68" gfxData="F0D8D8D8D8F00000" />
+      <tile index="69" gfxData="F8C0F0C0C0F80000" />
+      <tile index="70" gfxData="F8C0F0C0C0C00000" />
+      <tile index="71" gfxData="70C0C0D8D8780000" />
+      <tile index="72" gfxData="D8D8F8D8D8D80000" />
+      <tile index="73" gfxData="6060606060600000" />
+      <tile index="74" gfxData="3030303030E00000" />
+      <tile index="75" gfxData="D8D8F0D8D8D80000" />
+      <tile index="76" gfxData="C0C0C0C0C0F80000" />
+      <tile index="77" gfxData="88D8F8F8D8D80000" />
+      <tile index="78" gfxData="98D8F8F8D8C80000" />
+      <tile index="79" gfxData="70D8D8D8D8700000" />
+      <tile index="80" gfxData="F0D8D8D8F0C00000" />
+      <tile index="81" gfxData="70D8D8D8D0680000" />
+      <tile index="82" gfxData="F0D8D8F0D8D80000" />
+      <tile index="83" gfxData="78C0F07818F00000" />
+      <tile index="84" gfxData="7830303030300000" />
+      <tile index="85" gfxData="D8D8D8D8D8700000" />
+      <tile index="86" gfxData="D8D8D8D870200000" />
+      <tile index="87" gfxData="D8D8D8F8D8880000" />
+      <tile index="88" gfxData="D8D87070D8D80000" />
+      <tile index="89" gfxData="CCCCCC7830300000" />
+      <tile index="90" gfxData="F8183060C0F80000" />
+      <tile index="91" gfxData="3830303030303800" />
+      <tile index="92" gfxData="00C06030180C0000" />
+      <tile index="93" gfxData="7030303030307000" />
+      <tile index="94" gfxData="2070D80000000000" />
+      <tile index="95" gfxData="000000000000FC00" />
+      <tile index="96" gfxData="0000000000000000" />
+      <tile index="97" gfxData="00701878D8F80000" />
+      <tile index="98" gfxData="C0F0C8C8C8F00000" />
+      <tile index="99" gfxData="0078C0C0C0780000" />
+      <tile index="100" gfxData="1878D8D8D8780000" />
+      <tile index="101" gfxData="0070D8F8C0700000" />
+      <tile index="102" gfxData="386060F860600000" />
+      <tile index="103" gfxData="0070D8D87818F000" />
+      <tile index="104" gfxData="C0F0D8D8D8D80000" />
+      <tile index="105" gfxData="3000303030300000" />
+      <tile index="106" gfxData="300030303030E000" />
+      <tile index="107" gfxData="C0D8D8F0D8D80000" />
+      <tile index="108" gfxData="3030303030300000" />
+      <tile index="109" gfxData="00F0A8A8A8A80000" />
+      <tile index="110" gfxData="00F0D8D8D8D80000" />
+      <tile index="111" gfxData="0070D8D8D8700000" />
+      <tile index="112" gfxData="00F0D8D8D8F0C000" />
+      <tile index="113" gfxData="0078D8D8D8781800" />
+      <tile index="114" gfxData="0078C0C0C0C00000" />
+      <tile index="115" gfxData="0078C07018F00000" />
+      <tile index="116" gfxData="60F8606060380000" />
+      <tile index="117" gfxData="00D8D8D8D8700000" />
+      <tile index="118" gfxData="00D8D8D870200000" />
+      <tile index="119" gfxData="00D8D8A8F8A80000" />
+      <tile index="120" gfxData="00D8702070D80000" />
+      <tile index="121" gfxData="00D8D8D87818F000" />
+      <tile index="122" gfxData="00F8183060F80000" />
+      <tile index="123" gfxData="1830306030301800" />
+      <tile index="124" gfxData="3030300030303000" />
+      <tile index="125" gfxData="6030301830306000" />
+      <tile index="126" gfxData="0000000000000000" />
+      <tile index="127" gfxData="0000000000000000" />
+      <tile index="128" gfxData="0000000000000000" />
+      <tile index="129" gfxData="0000000000000000" />
+      <tile index="130" gfxData="0000000000000000" />
+      <tile index="131" gfxData="0000000000000000" />
+      <tile index="132" gfxData="0000000000000000" />
+      <tile index="133" gfxData="0000000000000000" />
+      <tile index="134" gfxData="0000000000000000" />
+      <tile index="135" gfxData="0000000000000000" />
+      <tile index="136" gfxData="0000000000000000" />
+      <tile index="137" gfxData="0000000000000000" />
+      <tile index="138" gfxData="0000000000000000" />
+      <tile index="139" gfxData="0000000000000000" />
+      <tile index="140" gfxData="0000000000000000" />
+      <tile index="141" gfxData="0000000000000000" />
+      <tile index="142" gfxData="0000000000000000" />
+      <tile index="143" gfxData="0000000000000000" />
+      <tile index="144" gfxData="0000000000000000" />
+      <tile index="145" gfxData="0000000000000000" />
+      <tile index="146" gfxData="0000000000000000" />
+      <tile index="147" gfxData="0000000000000000" />
+      <tile index="148" gfxData="0000000000000000" />
+      <tile index="149" gfxData="0000000000000000" />
+      <tile index="150" gfxData="0000000000000000" />
+      <tile index="151" gfxData="0000000000000000" />
+      <tile index="152" gfxData="0000000000000000" />
+      <tile index="153" gfxData="0000000000000000" />
+      <tile index="154" gfxData="0000000000000000" />
+      <tile index="155" gfxData="0000000000000000" />
+      <tile index="156" gfxData="0000000000000000" />
+      <tile index="157" gfxData="0000000000000000" />
+      <tile index="158" gfxData="0000000000000000" />
+      <tile index="159" gfxData="0000000000000000" />
+      <tile index="160" gfxData="0000000000000000" />
+      <tile index="161" gfxData="0000000000000000" />
+      <tile index="162" gfxData="0000000000000000" />
+      <tile index="163" gfxData="0000000000000000" />
+      <tile index="164" gfxData="0000000000000000" />
+      <tile index="165" gfxData="0000000000000000" />
+      <tile index="166" gfxData="0000000000000000" />
+      <tile index="167" gfxData="0000000000000000" />
+      <tile index="168" gfxData="0000000000000000" />
+      <tile index="169" gfxData="0000000000000000" />
+      <tile index="170" gfxData="0000000000000000" />
+      <tile index="171" gfxData="0000000000000000" />
+      <tile index="172" gfxData="0000000000000000" />
+      <tile index="173" gfxData="0000000000000000" />
+      <tile index="174" gfxData="0000000000000000" />
+      <tile index="175" gfxData="0000000000000000" />
+      <tile index="176" gfxData="0000000000000000" />
+      <tile index="177" gfxData="0000000000000000" />
+      <tile index="178" gfxData="0000000000000000" />
+      <tile index="179" gfxData="0000000000000000" />
+      <tile index="180" gfxData="0000000000000000" />
+      <tile index="181" gfxData="0000000000000000" />
+      <tile index="182" gfxData="0000000000000000" />
+      <tile index="183" gfxData="0000000000000000" />
+      <tile index="184" gfxData="0000000000000000" />
+      <tile index="185" gfxData="0000000000000000" />
+      <tile index="186" gfxData="0000000000000000" />
+      <tile index="187" gfxData="0000000000000000" />
+      <tile index="188" gfxData="0000000000000000" />
+      <tile index="189" gfxData="0000000000000000" />
+      <tile index="190" gfxData="0000000000000000" />
+      <tile index="191" gfxData="0000000000000000" />
+      <tile index="192" gfxData="0000000000000000" />
+      <tile index="193" gfxData="0000000000000000" />
+      <tile index="194" gfxData="0000000000000000" />
+      <tile index="195" gfxData="0000000000000000" />
+      <tile index="196" gfxData="0000000000000000" />
+      <tile index="197" gfxData="0000000000000000" />
+      <tile index="198" gfxData="0000000000000000" />
+      <tile index="199" gfxData="0000000000000000" />
+      <tile index="200" gfxData="0000000000000000" />
+      <tile index="201" gfxData="0000000000000000" />
+      <tile index="202" gfxData="0000000000000000" />
+      <tile index="203" gfxData="0000000000000000" />
+      <tile index="204" gfxData="0000000000000000" />
+      <tile index="205" gfxData="0000000000000000" />
+      <tile index="206" gfxData="0000000000000000" />
+      <tile index="207" gfxData="0000000000000000" />
+      <tile index="208" gfxData="0000000000000000" />
+      <tile index="209" gfxData="0000000000000000" />
+      <tile index="210" gfxData="0000000000000000" />
+      <tile index="211" gfxData="0000000000000000" />
+      <tile index="212" gfxData="0000000000000000" />
+      <tile index="213" gfxData="0000000000000000" />
+      <tile index="214" gfxData="0000000000000000" />
+      <tile index="215" gfxData="0000000000000000" />
+      <tile index="216" gfxData="0000000000000000" />
+      <tile index="217" gfxData="0000000000000000" />
+      <tile index="218" gfxData="0000000000000000" />
+      <tile index="219" gfxData="0000000000000000" />
+      <tile index="220" gfxData="0000000000000000" />
+      <tile index="221" gfxData="0000000000000000" />
+      <tile index="222" gfxData="0000000000000000" />
+      <tile index="223" gfxData="0000000000000000" />
+      <tile index="224" gfxData="0000000000000000" />
+      <tile index="225" gfxData="0000000000000000" />
+      <tile index="226" gfxData="0000000000000000" />
+      <tile index="227" gfxData="0000000000000000" />
+      <tile index="228" gfxData="0000000000000000" />
+      <tile index="229" gfxData="0000000000000000" />
+      <tile index="230" gfxData="0000000000000000" />
+      <tile index="231" gfxData="0000000000000000" />
+      <tile index="232" gfxData="0000000000000000" />
+      <tile index="233" gfxData="0000000000000000" />
+      <tile index="234" gfxData="0000000000000000" />
+      <tile index="235" gfxData="0000000000000000" />
+      <tile index="236" gfxData="0000000000000000" />
+      <tile index="237" gfxData="0000000000000000" />
+      <tile index="238" gfxData="0000000000000000" />
+      <tile index="239" gfxData="0000000000000000" />
+      <tile index="240" gfxData="0000000000000000" />
+      <tile index="241" gfxData="0000000000000000" />
+      <tile index="242" gfxData="0000000000000000" />
+      <tile index="243" gfxData="0000000000000000" />
+      <tile index="244" gfxData="0000000000000000" />
+      <tile index="245" gfxData="0000000000000000" />
+      <tile index="246" gfxData="0000000000000000" />
+      <tile index="247" gfxData="0000000000000000" />
+      <tile index="248" gfxData="0000000000000000" />
+      <tile index="249" gfxData="0000000000000000" />
+      <tile index="250" gfxData="0000000000000000" />
+      <tile index="251" gfxData="0000000000000000" />
+      <tile index="252" gfxData="0000000000000000" />
+      <tile index="253" gfxData="0000000000000000" />
+      <tile index="254" gfxData="0000000000000000" />
+      <tile index="255" gfxData="0000000000000000" />
+    </tileset>
     <tileset id="5252561" name="MSX_font" mode="1" foregroundColor="15" backgroundColor="1">
       <colors>F44FF4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F4F44FF4F4F4F4</colors>
       <tile index="0" gfxData="0000000000000000" />
@@ -268,11 +532,6 @@
     </tileset>
   </gfx>
   <maps>
-    <SourceCodeFormat LanguageCode="1" NumeralSystem="7" LineSizeIndex="4" CompressType="0" DataLabel="New MapB(1)">
-      <Assembler DataByteCommand="db" DataWordCommand="dw" />
-      <C UnsignedByteTypeDef="const char" SignedByteTypeDef="const signed char" />
-      <BASIC commentInstruction="REM" dataInstruction="DATA" FirstLineNumber="1000" Increment="10" remove0="False" />
-    </SourceCodeFormat>
     <map id="49943051" name="New MapB(1)" maptype="0" tiletype="0" width="32" height="17" paletteID="0" tileset="5252561">
       <line index="0">002020205F5F5F5F5F20202020205F5F5F5F5F5F5F5F5F5F5F5F20205F5F5F00</line>
       <line index="1">0020202F20202020205C2020202F20205F5F5F5F5F2F5C2020205C2F20202F00</line>
@@ -293,4 +552,38 @@
       <line index="16">201A171717171717171717171717171717171717171717171717171717171B20</line>
     </map>
   </maps>
+  <sprites>
+    <spriteset id="16676828" name="TestTMS_sprites_SSET" size="2" mode="1" paletteID="0">
+      <sprite index="0" name="" InkColor="15" BGcolor="0">
+        <gfxData>3C42A581A599423C3C7EDBFFFFDB663C6CFEFEFE7C38100010387CFE7C381000</gfxData>
+      </sprite>
+      <sprite index="1" name="" InkColor="15" BGcolor="0">
+        <gfxData>103854FE5410380010387CFEFE1038000000001818000000FFFFFFE7E7FFFFFF</gfxData>
+      </sprite>
+      <sprite index="2" name="" InkColor="15" BGcolor="4">
+        <gfxData>0F1F3D3F7B7CBFBF9FEF6F1F0F05051DC0E060C04080808486DEC0C0800000C0</gfxData>
+      </sprite>
+      <sprite index="3" name="" InkColor="15" BGcolor="4">
+        <gfxData>05071A2E6F5B5C5B5F586F2D1602020640C0B8D4D46AEA6AEA6AD4D4F8404060</gfxData>
+      </sprite>
+      <sprite index="4" name="" InkColor="15" BGcolor="4">
+        <gfxData>03074FCF4D4F2C1E3F3F3F3F1F020206C0E2E6E2A2F4387CFEFEFEFCF8404060</gfxData>
+      </sprite>
+      <sprite index="5" name="" InkColor="15" BGcolor="4">
+        <gfxData>051E3F6F576E3F00070507040603020660F8F4EA76BE7C00E060E02060C04060</gfxData>
+      </sprite>
+      <sprite index="6" name="" InkColor="15" BGcolor="4">
+        <gfxData>05071F3F7F7F7F7D7F7F783F1F04040C40C0F0F8FCFCFC7CFCFC3CF8F0404060</gfxData>
+      </sprite>
+      <sprite index="7" name="" InkColor="15" BGcolor="4">
+        <gfxData>071F3F3F7F717F7F7F7E3E3F1F070206E0F8FCFCFE8EFEFEFE7E7CFCF8E04060</gfxData>
+      </sprite>
+      <sprite index="8" name="" InkColor="15" BGcolor="4">
+        <gfxData>00071F3F7F71FFFF7B7C3F1F0702020600E0F8FCFE8EFFFFDE3EFCF8E0404060</gfxData>
+      </sprite>
+      <sprite index="9" name="" InkColor="15" BGcolor="4">
+        <gfxData>051E3F6F576E3F00070507040603020660F8F4EA76BE7C00E060E02060C04060</gfxData>
+      </sprite>
+    </spriteset>
+  </sprites>
 </msxOpenDocument>

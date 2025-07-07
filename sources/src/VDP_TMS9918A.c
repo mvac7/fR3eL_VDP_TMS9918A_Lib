@@ -460,7 +460,6 @@ Description:
 		function at the beginning of the sequence.
 Input    : --
 Output   : A - value
-Regs:	-
 ============================================================================= */ 
 _FastVPEEK::  
 	in   A,(VDPVRAM)
@@ -506,7 +505,7 @@ __endasm;
 /* =============================================================================
 FillVRAM                               
 Description:
-		Fill a large area of the VRAM of the same value.
+		Fills an area of ​​VRAM with the same value.
 Input:	[unsigned int] VRAM address
 		[unsigned int] block size
 		[char] Value to fill
@@ -597,11 +596,10 @@ __endasm;
 /* =============================================================================
 GetVDP
 Description:
-		Provides the mirror value of a VDP register stored in system 
-		variables.
-		Use readVDP in assembler inline
-Input:	[char]/[A] register number (0-7)           
-Output:	[char]/[A] value
+		Gets the value in a VDP register.
+		Provides the mirror value of a VDP register stored in system variables.
+Input:	[char] register number (0-7)           
+Output:	[char] value
 Regs:	HL,DE
 ============================================================================= */
 char GetVDP(char reg) __naked
@@ -623,7 +621,8 @@ __endasm;
 /* =============================================================================
 SetVDP
 Description:
-		Writes a value to VDP register
+		Writes a value to a VDP register and 
+		saves the value in the system variables.
 Input:	[char] register number (0-7)                    
 		[char] value
 Output:	-
@@ -640,7 +639,7 @@ __asm
 /* =============================================================================
 writeVDP
 Description:
-		Writes a value to VDP register
+		Writes a value to a VDP register
 Input:	A  - value
         C  - register number (0-7) 
 Output:	-
@@ -689,7 +688,7 @@ writeVDP::
 /* =============================================================================
 fillVR                                
 Description:
-		Fill a large area of the VRAM of the same value.
+		Fills an area of ​​VRAM with the same value.
 Input:	HL - VRAM address
 		DE - Size
 		A  - value
@@ -791,7 +790,7 @@ __endasm;
 SetVDPtoREAD
 Description:
 		Enable VDP to read and indicates the VRAM address where the reading 
-		will be performed. (Similar to the SETRD function of the MSX BIOS)
+		will be performed.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A
@@ -817,7 +816,7 @@ __endasm;
 SetVDPtoWRITE
 Description: 
 		Enable VDP to write and indicates the VRAM address where the writing 
-		will be performed. (Similar to the SETWRT function of the MSX BIOS)
+		will be performed.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A             
@@ -1007,10 +1006,8 @@ __endasm;
 GetSPRattrVADDR
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
-		(Similar to the CALATR function of the MSX BIOS)
-Input:	[char] [A] sprite plane (0-31) 
-Output:	[unsigned int] [HL] VRAM address
-Regs.:	[DE]
+Input:	[char] sprite plane (0-31) 
+Output:	[unsigned int] VRAM address
 ============================================================================= */
 unsigned int GetSPRattrVADDR(char plane) __naked
 {

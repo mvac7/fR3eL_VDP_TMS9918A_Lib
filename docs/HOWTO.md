@@ -282,14 +282,18 @@ Label	| Value		| Description
 BASE0	| 0x0000	| Name Table
 BASE2	| 0x0800	| Pattern Table
 
+<br/>
+
 #### Graphic1 (Screen 1)
 Label	| Value		| Description
 :---	| :---		| :---
 BASE5	| 0x1800	| Name Table
 BASE6	| 0x2000	| Color Table
 BASE7	| 0x0000	| Pattern Table
-BASE8	| 0x1B00	| Sprite Attribute Table (OAM^*^)
+BASE8	| 0x1B00	| Sprite Attribute Table (OAM*)
 BASE9	| 0x3800	| Sprite Pattern Table
+
+<br/>
 
 #### Graphic2 (Screen 2)
 Label	| Value		| Description
@@ -297,18 +301,20 @@ Label	| Value		| Description
 BASE10	| 0x1800	| Name Table
 BASE11	| 0x2000	| Color Table
 BASE12	| 0x0000	| Pattern Table
-BASE13	| 0x1B00	| Sprite Attribute Table (OAM^*^)
+BASE13	| 0x1B00	| Sprite Attribute Table (OAM*)
 BASE14	| 0x3800	| Sprite Pattern Table
+
+<br/>
 
 #### Multicolor (Screen 3)
 Label	| Value		| Description
 :---	| :---		| :---
 BASE15	| 0x0800	| Name Table
 BASE17	| 0x0000	| Pattern Table
-BASE18	| 0x1B00	| Sprite Attribute Table (OAM^*^)
+BASE18	| 0x1B00	| Sprite Attribute Table (OAM*)
 BASE19	| 0x3800	| Sprite Pattern Table
 
-__**^*^OAM** = Object Attribute Memory__
+__***OAM** = Object Attribute Memory__
 
 <br/>
 
@@ -464,7 +470,7 @@ You can use the definitions: [3.6 Color Names](#36-Color-Names)
 
 <table>
 <tr><th colspan=3 align="left">GetVDP</th></tr>
-<tr><td colspan=3>Provides the mirror value of a VDP register stored in system variables.</td></tr>
+<tr><td colspan=3>Gets the value in a VDP register.<br/>Provides the mirror value of a VDP register stored in system variables (RG0SAV=0x0xF3DF).</td></tr>
 <tr><th>Function</th><td colspan=2>GetVDP(register)</td></tr>
 <tr><th>Input</th><td>char</td><td>VDP register (0-7)</td></tr>
 <tr><th>Output</th><td>char</td><td>Value</td></tr>
@@ -491,7 +497,7 @@ char isText1Mode(void)
 
 <table>
 <tr><th colspan=3 align="left">SetVDP</th></tr>
-<tr><td colspan=3>Writes a value to a VDP register.</td></tr>
+<tr><td colspan=3>Writes a value to a VDP register and saves the value in the system variables (RG0SAV=0x0xF3DF).</td></tr>
 <tr><th>Function</th><td colspan=2>SetVDP(register, value)</td></tr>
 <tr><th rowspan=2>Input</th><td>char</td><td>VDP register (0-7)</td></tr>
 <tr><td>char</td><td>value</td></tr>
@@ -535,14 +541,20 @@ char isText1Mode(void)
 
 <table>
 <tr><th colspan=3 align="left">FastVPOKE</th></tr>
-<tr><td colspan=3>Writes a value to the next video RAM position.<br/> 
-Requires the VDP to be in write mode, either by previously using VPOKE or SetVRAMtoWRITE functions.</td></tr>
+<tr><td colspan=3>Writes a value to the last position in video RAM and increments it.<br/>
+This is a fast way to write consecutive values ​​to VRAM.<br/>
+Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function at the beginning of the sequence.</td></tr>
 <tr><th>Function</th><td colspan=2>FastVPOKE(value)</td></tr>
 <tr><th rowspan=1>Input</th><td>char</td><td>Value</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
 
-##### Example:
+##### Examples:
+
+```c
+	VPOKE(SPR_OAM,128);	//Sprite plane 0, y=128
+	FastVPOKE(74);		//Sprite plane 0, x=74 
+```
 
 ```c
 	char i;
@@ -599,7 +611,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 
 <table>
 <tr><th colspan=3 align="left">FillVRAM</th></tr>
-<tr><td colspan=3>Fill a large area of the VRAM of the same byte.</td></tr>
+<tr><td colspan=3>Fill a large area of the VRAM of the same value.</td></tr>
 <tr><th>Function</th><td colspan=2>FillVRAM(VRAMaddr, size, value)</td></tr>
 <tr><th rowspan=3>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>unsigned int</td><td>block size</td></tr>
@@ -662,7 +674,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 	
 <table>
 <tr><th colspan=3 align="left">SetVDPtoREAD</th></tr>
-<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.<br/>(Similar to the SETRD function of the MSX BIOS)</td></tr>
+<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.</td></tr>
 <tr><th>Function</th><td colspan=2>SetVDPtoREAD(vaddr)</td></tr>
 <tr><th>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -685,7 +697,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoWRITE</th></tr>
-<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.<br/>(Similar to the SETWRT function of the MSX BIOS)</td></tr>
+<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.</td></tr>
 <tr><th>Function</th><td colspan=2>SetVDPtoWRITE(vaddr)</td></tr>
 <tr><th>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -806,7 +818,7 @@ Requires the VDP to be in write mode, either by previously using VPOKE or SetVRA
 
 <table>
 <tr><th colspan=3 align="left">GetSPRattrVADDR</th></tr>
-<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.<br/>(Similar to the CALATR function of the MSX BIOS)</td></tr>
+<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.</td></tr>
 <tr><th>Function</th><td colspan=2>GetSPRattrVADDR(plane)</td></tr>
 <tr><th>Input</th><td>char</td><td>sprite plane (0-31) </td></tr>
 <tr><th>Output</th><td>unsigned int</td><td>VRAM address</td></tr>
@@ -889,7 +901,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoWRITE</th></tr>
-<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.<br/>(Similar to the SETWRT function of the MSX BIOS).</td></tr>
+<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.</td></tr>
 <tr><th>Label</th><td colspan=2>_SetVDPtoWRITE</td></tr>
 <tr><th>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -913,7 +925,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoREAD</th></tr>
-<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.<br/>(Similar to the SETRD function of the MSX BIOS)</td></tr>
+<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.</td></tr>
 <tr><th>Label</th><td colspan=2>_SetVDPtoREAD</td></tr>
 <tr><th>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -1069,7 +1081,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">fillVR</th></tr>
-<tr><td colspan=3>Fill a large area of the VRAM of the same byte.</td></tr>
+<tr><td colspan=3>Fills an area of ​​VRAM with the same value.</td></tr>
 <tr><th>Label</th><td colspan=2>fillVR</td></tr>
 <tr><th rowspan=3>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><td>DE</td><td>block size</td></tr>
@@ -1155,7 +1167,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">GetSPRattrVADDR</th></tr>
-<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.<br/>(Similar to the CALATR function of the MSX BIOS)</td></tr>
+<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.</td></tr>
 <tr><th>Label</th><td colspan=2>_GetSPRattrVADDR</td></tr>
 <tr><th>Input</th><td>A</td><td>sprite plane (0-31)</td></tr>
 <tr><th>Output</th><td>HL</td><td>VRAM address</td></tr>

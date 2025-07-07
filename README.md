@@ -47,8 +47,8 @@ Enjoy it!
 	- Update to SDCC (4.1.12) Z80 calling conventions
 	- Added SetVRAMtoREAD and SetVRAMtoWRITE functions
 	- Added FastVPOKE and FastVPEEK functions
-	- Added initialization of MC mode (in SCREEN function) with sorted map.
-	- Added initialization of the color table in GRAPHIC1 mode (based on the values ​​previously given by the COLOR function).
+	- Added initialization of MultiColor mode (in SCREEN function) with sorted map.
+	- Added initialization of the color table in Graphic1 mode (based on the values ​​previously given by the COLOR function).
 	- The FillVRAM, CopyToVRAM, and CopyFromVRAM functions have been optimized for faster access to VRAM.
 - v1.4 (16 August 2022) Bug #2 (initialize VRAM address in V9938) and code optimization.
 - v1.3 (23 July  2019) COLOR function improvements.
@@ -100,7 +100,7 @@ Enjoy it!
 | FastVPOKE      | `FastVPOKE(char value)`     | ---    | Writes a value to the next video RAM position |
 | VPEEK          | `VPEEK(unsigned int vaddr)` | `char` | Reads a value from VRAM |
 | FastVPEEK      | `FastVPEEK(char value)`     | `char` | Reads the next video RAM value |
-| FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int size, char value)` | --- | Fill a large area of the VRAM of the same value |
+| FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int size, char value)` | --- | Fills an area of ​​VRAM with the same value. |
 | CopyToVRAM     | `CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size)` | --- | Block transfer from memory to VRAM    |
 | CopyFromVRAM   | `CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size)` | --- | Block transfer from VRAM to memory  |
 | SetVDPtoREAD   | `SetVDPtoREAD(unsigned int vaddr)`  | --- | Enable VDP to read (Similar to BIOS SETRD)   |
@@ -166,6 +166,48 @@ The COLOR function writes the given values ​​to the system variables: FORCLR
 
 Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
 If you want to adapt this library to another computer, you would need to remove it or move it to available memory.
+
+<br/>
+
+---
+
+## Examples
+ 
+The project includes several examples that I have used to test the library and that can help you learn how to use this library.
+
+You can find them in the [`examples/`](examples/) folder.
+
+<br/>
+
+### Example 1 (ROM)
+
+Example included in the HOWTO document.
+
+[`examples/Example01`](examples/Example01)
+
+![Example screenshot](docs/pics/EXAMPLE1_01.png) 
+
+<br/>
+
+### Example 2 (ROM)
+
+This example tests all of the library's functions in the four screen modes of the TMS9918A.
+Test the functionality of the library in a system environment for ROM (BIOS+ROM+RAM+RAM).
+
+[`examples/Example02`](examples/Example02)
+
+![Example screenshot](docs/pics/EXAMPLE2_01.png) 
+
+<br/>
+
+### Example 3 (MSX-DOS)
+
+This example tests all of the library's functions in the four screen modes of the TMS9918A.
+Test the functionality of the library in a system environment for MSX-DOS.
+
+[`examples/Example03`](examples/Example02)
+
+![Example screenshot](docs/pics/EXAMPLE2_02.png) 
 
 <br/>
 

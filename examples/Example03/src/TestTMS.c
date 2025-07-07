@@ -58,13 +58,16 @@ void VPRINT(char* text);
 
 void PRINT(char* text);
 
+void DrawHorzLine(char tile, char size);
 void DrawBox(char width, char height);
 void DrawFillBox(char width, char height, char tile);
+
+void ClearVRAM(void);
 
 void ShowMenu(void);
 void Menu(void);
 
-void testCOLOR(void);
+//void testCOLOR(void);
 
 void testSCREEN0(void);
 void testSCREEN1(void);
@@ -82,15 +85,14 @@ void showSprites(char offset);
 
 
 // ---------------------------------------------------------------------------- Constants
-const char text01[] = "Test VDP_TMS9918A Lib\n\r"; 
+const char text01[] = "Test VDP_TMS9918A Lib"; 
 
-const char textMENU[7][30] = {
+const char textMENU[6][30] = {
 "[F1] Test TEXT1     (Screen0)",
 "[F2] Test GRAPHIC1  (Screen1)",
 "[F3] Test GRAPHIC2  (Screen2)",
 "[F4] Test MULTICOLOR(Screen3)",
 "[F5] Test Sprites            ",
-"[BS] Test COLOR()            ",
 "[ESC] Exit                   "};
 
 const char text10[] = "Test CLS()";
@@ -326,6 +328,7 @@ void main(void)
 
   //HALT;
   PRINT(text01); 
+  PRINT("\n\r");
   PRINT(msg_PressKey);
   INKEY();
 
@@ -450,32 +453,40 @@ __endasm;
 
 
 
+void DrawHorzLine(char tile, char size)
+{
+	char i;
+	for(i=0;i<size;i++) FastVPOKE(tile);
+}
+
+
+
 void DrawBox(char width, char height)
 {
 	char box_winside = width-2;
 	char box_hinside = height-2;
 	char nextLine;
 		
-	char i,o;
+	char i;
 	
 	if (isTxtMode()) nextLine = 41-width;
 	else nextLine = 33-width;
 	
 	VPOKE(vprint_addr++,24);
-	for(i=0;i<box_winside;i++) FastVPOKE(23);
+	DrawHorzLine(23,box_winside);
 	FastVPOKE(25);
 	vprint_addr+=box_winside+nextLine;
 	
-	for(o=1;o<box_hinside;o++)
+	for(i=1;i<box_hinside;i++)
 	{		
 		VPOKE(vprint_addr++,22);
-		for(i=0;i<box_winside;i++) FastVPOKE(32);
+		DrawHorzLine(32,box_winside);
 		FastVPOKE(22);
 		vprint_addr+=box_winside+nextLine;
 	}		
 	
 	VPOKE(vprint_addr++,26);
-	for(i=0;i<box_winside;i++) FastVPOKE(23);
+	DrawHorzLine(23,box_winside);
 	FastVPOKE(27);	
 }
 
@@ -483,16 +494,16 @@ void DrawBox(char width, char height)
 
 void DrawFillBox(char width, char height, char tile)
 {
-	char i,o;
+	char i;
 	char nextLine;
 	
 	if (isTxtMode()) nextLine = 40-width;
 	else nextLine = 32-width;
 		
-	for(o=0;o<height;o++)
+	for(i=0;i<height;i++)
 	{
 		SetVDPtoWRITE(vprint_addr);
-		for(i=0;i<width;i++) FastVPOKE(tile);
+		DrawHorzLine(tile,width);
 		vprint_addr+=width+nextLine;
 	}
 }
@@ -607,6 +618,12 @@ void VPRINT(char* text)
 
 
 
+void ClearVRAM(void)
+{	
+	FillVRAM(0,0x3FFF,0x00);
+}
+
+
 
 void ShowMenu(void)
 {
@@ -634,7 +651,7 @@ void ShowMenu(void)
 	VLOCATE(0,17);
 	DrawBox(32,6);
 	
-	for(i=0;i<7;i++)
+	for(i=0;i<6;i++)
 	{
 		VLOCATE(1,6+i);
 		VPRINT(textMENU[i]);
@@ -669,7 +686,7 @@ void Menu(void)
 		
 		if(time==0)
 		{
-			testCOLOR();
+			//testCOLOR();
 			testSCREEN0();
 			testSCREEN1();
 			testSCREEN2();
@@ -707,7 +724,7 @@ void Menu(void)
 				if (!(keyPressed&Bit2)) {Row7pressed=true;isExit=true;}; // [ESC]
 				//if (!(keyPressed&Bit3)) {Row7pressed=true;}; // [TAB]
 				//if (!(keyPressed&Bit4)) {Row7pressed=true;}; // [STOP]
-				if (!(keyPressed&Bit5)) {Row7pressed=true;testCOLOR();ShowMenu();}; // [BS]
+				//if (!(keyPressed&Bit5)) {Row7pressed=true;testCOLOR();ShowMenu();}; // [BS]
 				//if (!(keyPressed&Bit6)) {Row7pressed=true;}; // [SELECT]
 				//if (!(keyPressed&Bit7)) {Row7pressed=true;}; // [RETURN]
 			}      
@@ -722,7 +739,7 @@ void Menu(void)
 
 
 // TEST COLOR  #################################################################
-void testCOLOR(void)
+/*void testCOLOR(void)
 {
 	char i;
 
@@ -751,15 +768,17 @@ void testCOLOR(void)
 		WAIT(15);
 	}
 	WAIT(150);
-}
+}*/
 
 
 
 
 
-// TEST SCREEN 0 ###############################################################
+// ############################################################### TEST SCREEN 0
 void testSCREEN0(void)
 {
+	ClearVRAM();
+		
 	COLOR(WHITE,DARK_GREEN,0);    
 	SCREEN(0);
 
@@ -780,10 +799,12 @@ void testSCREEN0(void)
 
 
 
-// TEST SCREEN 1 ###############################################################
+// ############################################################### TEST SCREEN 1
 void testSCREEN1(void)
 {
 	char i;
+	
+	ClearVRAM();
 
 	COLOR(1,14,5);    
 	SCREEN(1);
@@ -807,6 +828,7 @@ void testSCREEN1(void)
 
 	WAIT(100);
 
+	//test fill VRAM 
 	testFill();
 	WAIT(100);
 	
@@ -815,11 +837,13 @@ void testSCREEN1(void)
 
 
 
-// TEST SCREEN 2 ###############################################################
+// ############################################################### TEST SCREEN 2
 void testSCREEN2(void)
 {
 	unsigned int i;
 	char value=0;
+	
+	ClearVRAM();
 
 	COLOR(0,14,1);    
 	SCREEN(2);
@@ -862,36 +886,26 @@ void testSCREEN2(void)
 	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
 	
 	WAIT(120);
-
+	
+	
 	//test fill VRAM  
 	testFill();
 	WAIT(100);
 	
 	testCLS();
-/*	FillVRAM(G1_MAP, 0x300, 203);
-	VLOCATE(0,0);
-	VPRINT(text10);		//">Test CLS() SCREEN 1");
-	TestClear(1);*/
-	
-/*	CLS();
-	WAIT(100);
-	
-	VLOCATE(12,11);
-	VPRINT(text10);
-	WAIT(150);*/
-	
-	FillVRAM(BASE12,0x1800,0x00);	//clear pattern data
-	FillVRAM(BASE11,0x1800,0xF4);	//clear color data
+
 }
 
 
 
-// TEST SCREEN 3 ###############################################################
+// ############################################################### TEST SCREEN 3
 void testSCREEN3(void)
 {
 	char value=0;
 	char loop;
 	char loopLine;
+	
+	ClearVRAM();
 
 	COLOR(0,4,CYAN);
 	SCREEN(1);
@@ -1028,7 +1042,7 @@ void testFill(void)
 
 
 
-// TEST Sprites ################################################################
+// ################################################################ TEST Sprites
 void testSprites(void)
 {
 	COLOR(0,0,1);
@@ -1075,24 +1089,27 @@ void testSprites(void)
 
 
 
-// TEST PUTSPRITE  #############################################################
+// ############################################################# TEST PUTSPRITE
 void showSprites(char offset)
 {
-	char X=2,Y=3;
+	char X=2,Y=2;
 	char i=0;
+	char sprpat=0;
 	
-	VLOCATE(7,11);
-	DrawBox(18,11);
+	/*VLOCATE(7,11);
+	DrawBox(18,11);*/
 
-	for(i=0;i<8;i++)
+	for(i=0;i<16;i++)
 	{
-		PUTSPRITE(i, X*32, Y*32, sprcol[i], i+offset);
+		PUTSPRITE(i, X*32, Y*32, sprcol[sprpat], sprpat+offset);
+		sprpat++;
 		X++;
 		if(X==6)
 		{
 			X=2;
 			Y++;
 		}
+		if (sprpat>7) sprpat=0;
 	}
 }
 

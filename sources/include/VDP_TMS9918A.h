@@ -293,7 +293,7 @@ extern char FastVPEEK(void);
 /* =============================================================================
 FillVRAM                               
 Description:
-		Fill a large area of the VRAM of the same value.
+		Fills an area of ​​VRAM with the same value.
 Input:	[unsigned int] VRAM address
 		[unsigned int] block size
 		[char] Value to fill
@@ -332,10 +332,10 @@ void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size);
 /* =============================================================================
 GetVDP
 Description:
-		Provides the mirror value of a VDP register stored in system 
-		variables.
-Input:	[char] VDP register              
-Output:	[char] Value
+		Gets the value in a VDP register.
+		Provides the mirror value of a VDP register stored in system variables.
+Input:	[char] register number (0-7)           
+Output:	[char] value
 ============================================================================= */
 char GetVDP(char reg);
 
@@ -345,7 +345,7 @@ char GetVDP(char reg);
 SetVDP
 Description:
 		Writes a value to a VDP register
-Input:	[char] VDP register (0-7)                    
+Input:	[char] register number (0-7)                    
 		[char] value
 Output:	-
 ============================================================================= */
@@ -353,11 +353,14 @@ void SetVDP(char reg, char value);
 
 
 
+
+
+
 /* =============================================================================
 SetVDPtoREAD
 Description:
 		Enable VDP to read and indicates the VRAM address where the reading 
-		will be performed. (Similar to BIOS SETRD)
+		will be performed.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A
@@ -370,7 +373,7 @@ void SetVDPtoREAD(unsigned int vaddr);
 SetVDPtoWRITE
 Description: 
 		Enable VDP to write and indicates the VRAM address where the writing 
-		will be performed. (Similar to BIOS SETWRT)
+		will be performed.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A             
@@ -439,7 +442,6 @@ void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 GetSPRattrVADDR
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
-		Same as MSX BIOS CALATR
 Input:	[char] [A] sprite plane (0-31) 
 Output:	[unsigned int] [HL] VRAM address
 ============================================================================= */
@@ -451,18 +453,86 @@ unsigned int GetSPRattrVADDR(char plane);
 
 
 
-// ############################################################################# ASSEMBLE INLINE RUTINES
+/* ############################################################################# 
+                                                         ASSEMBLE INLINE RUTINES
 
 
+--------------------------------------------------------------------------------
+Label:	writeVDP
+Description:
+		Writes a value to a VDP register and 
+		saves the value in the system variables.
+Input:	A  - value
+        C  - register number (0-7) 
+Output:	-
+Registers: IY, DE
 
-/* =============================================================================
-Label:	GetSpritePattern
+--------------------------------------------------------------------------------
+Label:	readVDP
+Description:
+		Gets the value in a VDP register.
+		Provides the mirror value of a VDP register stored in system variables.
+Input:	[A] register number (0-7)           
+Output:	[A] value
+Regs:	HL,DE
+
+--------------------------------------------------------------------------------
+Label:	WriteByteToVRAM                                
+Description:
+		Writes a value to the video RAM. Same as VPOKE.
+Input:	HL - VRAM address
+		A - value
+Output:	-
+Regs:	A'
+
+--------------------------------------------------------------------------------
+Label:	ReadByteFromVRAM                                
+Description:
+		Reads a value from video RAM.
+Input:	HL - VRAM address
+Output:	A - value
+Regs:	-
+
+--------------------------------------------------------------------------------
+Label: fillVR                                
+Description:
+		Fill a large area of the VRAM of the same value.
+Input:	HL - VRAM address
+		DE - Size
+		A  - value
+Output:	-
+Regs:	BC
+
+--------------------------------------------------------------------------------
+Label: LDIR2VRAM
+Description:
+		Block transfer from memory to VRAM 
+Input:	DE - source Memory address
+		HL - target VRAM address
+		BC - block size
+Output:	-
+Regs:	A
+
+
+--------------------------------------------------------------------------------
+Label: GetBLOCKfromVRAM
+Description: 
+		Block transfer from VRAM to memory.  
+Input:	HL - source VRAM address                     
+		DE - target RAM address
+		BC - block size
+Output:	-
+Regs:	A
+
+--------------------------------------------------------------------------------
+Label: GetSpritePattern
 Description: 
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
 Input:	[E] sprite pattern 
 Output: [E] pattern position
 Regs:	A
+
 ============================================================================= */
 
 
