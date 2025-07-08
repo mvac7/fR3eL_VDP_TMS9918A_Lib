@@ -778,15 +778,13 @@ void testSCREEN2(void)
 	CopyToVRAM((uint) tilesetBakup,BASE12+BANK2,128*8);
 	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
 	
-	WAIT(120);
-	
+	WAIT(120);	
 	
 	//test fill VRAM  
 	testFill();
 	WAIT(100);
 	
 	testCLS();
-
 }
 
 

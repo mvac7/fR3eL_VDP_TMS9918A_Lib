@@ -806,7 +806,7 @@ void testSCREEN1(void)
 	
 	ClearVRAM();
 
-	COLOR(1,14,5);    
+	COLOR(5,4,1);   
 	SCREEN(1);
 
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,G1_PAT,128*8); 
@@ -824,7 +824,8 @@ void testSCREEN1(void)
 	foreground, as in VDP register 7). The colors are assigned to the BG Tiles as
 	follows: Tiles 00..07 share the first color, tiles 08..0F share the second 
 	color, etc, and tiles F8..FF share the last color.*/
-	FillVRAM(G1_COL,32,0xF4);
+	CopyToVRAM((uint) tileset_06x8_COL2,G1_COL,32);
+	//FillVRAM(G1_COL,32,0xF4);
 
 	WAIT(100);
 
@@ -885,15 +886,13 @@ void testSCREEN2(void)
 	CopyToVRAM((uint) tilesetBakup,BASE12+BANK2,128*8);
 	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
 	
-	WAIT(120);
-	
+	WAIT(120);	
 	
 	//test fill VRAM  
 	testFill();
 	WAIT(100);
 	
 	testCLS();
-
 }
 
 

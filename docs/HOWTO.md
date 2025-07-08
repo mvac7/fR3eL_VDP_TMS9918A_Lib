@@ -193,7 +193,7 @@ WHITE		| 15
 Definition of the video memory addresses where the different graphic data tables are located.
 
 <table>
-<tr><th align="left">**Notes:**</th></tr>
+<tr><th align="left">Notes:</th></tr>
 <tr><td>These addresses are those used by default by the MSX system.</td></tr>
 <tr><td>The sprite pattern and attribute tables are the same for GRAPHIC1, GRAPHIC2, and Multicolor modes.</td></tr>
 </table>
@@ -269,7 +269,7 @@ Definition of the video memory addresses where the different graphic data tables
 Based on the BASE instruction of MSX BASIC.
 
 <table>
-<tr><th align="left">**Note:**</th></tr>
+<tr><th align="left">Note:</th></tr>
 <tr><td>These addresses are those used by default by the MSX system.</td></tr>
 </table>
 
@@ -674,7 +674,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 	
 <table>
 <tr><th colspan=3 align="left">SetVDPtoREAD</th></tr>
-<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.</td></tr>
+<tr><td colspan=3>Sets the VDP to read VRAM mode and indicates the start address.</td></tr>
 <tr><th>Function</th><td colspan=2>SetVDPtoREAD(vaddr)</td></tr>
 <tr><th>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -697,7 +697,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoWRITE</th></tr>
-<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.</td></tr>
+<tr><td colspan=3>Sets the VDP to write VRAM mode and indicates the start address.</td></tr>
 <tr><th>Function</th><td colspan=2>SetVDPtoWRITE(vaddr)</td></tr>
 <tr><th>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -707,10 +707,10 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 ```c
 	SetVRAMtoWRITE(SPR_OAM+(10*4));	//sprite plane 10
-	FastVPOKE(120);
-	FastVPOKE(64);
-	FastVPOKE(nSprPattern*4);		//multiply by 4 for 16x16 Sprites
-	FastVPOKE(LIGHT_BLUE);
+	FastVPOKE(120);					//y
+	FastVPOKE(64);					//x
+	FastVPOKE(nSprPattern*4);		//pattern: multiply by 4 for 16x16 Sprites
+	FastVPOKE(LIGHT_BLUE);			//color
 ```
 
 <br/>
@@ -901,7 +901,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoWRITE</th></tr>
-<tr><td colspan=3>Enable VDP to write and indicates the VRAM address where the writing will be performed.</td></tr>
+<tr><td colspan=3>Sets the VDP to write VRAM mode and indicates the start address.</td></tr>
 <tr><th>Label</th><td colspan=2>_SetVDPtoWRITE</td></tr>
 <tr><th>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -925,7 +925,7 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">SetVDPtoREAD</th></tr>
-<tr><td colspan=3>Enable VDP to read and indicates the VRAM address where the reading will be performed.</td></tr>
+<tr><td colspan=3>Sets the VDP to read VRAM mode and indicates the start address.</td></tr>
 <tr><th>Label</th><td colspan=2>_SetVDPtoREAD</td></tr>
 <tr><th>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -1277,7 +1277,7 @@ And you need the following applications to compile and generate the final ROM:
 <br/>
 
 This example performs the following actions:
-1. Initializes the screen to Graphic1 mode (Screen 1) with 8x8 sprites.
+1. Initializes the screen to Graphic1 mode (Screen 1) with 8x8 sprites in 2x zoom mode.
 1. Copy the tileset included in the MSX BIOS to the VRAM Pattern Table using the `CopyToVRAM` function.
 1. Dumps the data from the testmap_MAP array to the VRAM Pattern Name Table using the `CopyToVRAM` function.
 1. Copy a tile pattern (tile 2) from VRAM to RAM using the `CopyFromVRAM` function.
@@ -1359,29 +1359,34 @@ void main(void)
 {
 	unsigned int BIOSfont = *(unsigned int *) CGTABL; //get BIOS font address
 	char TheSprite[8];			//buffer for one Sprite patter
-		
+	
+// 1. Initializes the screen ---------------------------------------------------
 	COLOR(15,4,5);
  	SCREEN(GRAPHIC1);			//Set Screen 1
 	SetSpritesSize(SPRITES8x8);
 	SetSpritesZoom(1);			//zoom x2
 	
-	//Copy MSX BIOS font to VRAM Pattern Table
+
+// 2. Copy MSX BIOS font to VRAM Pattern Table ---------------------------------
 	CopyToVRAM(BIOSfont,G1_PAT,0x800);
 		
-	//Copy a block of characters (tiles) to VRAM Name Table
+// 3. Copy a block of characters (tiles) to VRAM Name Table --------------------
 	CopyToVRAM((unsigned int) testmap_MAP,G1_MAP+32,544);
 	
-	//Copy a tile Pattern (tile 2) to Sprite Pattern Table
+// 4. Copy a tile Pattern (tile 2) to Sprite Pattern Table ---------------------
 	CopyFromVRAM(G1_PAT+16,(unsigned int) TheSprite,8);	//Copy VRAM to RAM
+	
+// 5. Copy the pattern to the Sprite Pattern Table -----------------------------
 	CopyToVRAM((unsigned int) TheSprite,SPR_PAT,8);		//Copy RAM to VRAM
 	
-	//Puts a Sprite on plane 0
+// 6. Puts a Sprite on plane 0 -------------------------------------------------
 	VPOKE(SPR_OAM,156);			//y
 	FastVPOKE(124);				//x
 	FastVPOKE(0);				//sprite pattern
 	FastVPOKE(LIGHT_YELLOW);	//color
-	
-	PUTSPRITE(1,148,156,LIGHT_GREEN,0);	//Put Sprite 0 on plane 1 at coordinates (140,156)
+
+// 7. Puts a Sprite on plane 1 -------------------------------------------------	
+	PUTSPRITE(1,148,156,LIGHT_GREEN,0);
 
 // execute BIOS CHGET - One character input (waiting)
 __asm call 0x009F __endasm;	
@@ -1405,21 +1410,6 @@ hex2bin -e bin -l 2000 Example01.ihx
 ```
 
 Rename file `Example01.bin` to `TMSTEST1.ROM`.
-
-
-<br/>
-
-### Example 2
-
-This example tests all of the library's functions in the four screen modes of the TMS9918A.
-Test the functionality of the library in a system environment for ROM (BIOS+ROM+RAM+RAM).
-
-<br/>
-
-
-### Example 3
-
-It is the same as Example 2 but for an MSX-DOS environment.
 
 <br/>
 

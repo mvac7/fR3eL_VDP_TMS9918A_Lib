@@ -103,8 +103,8 @@ Enjoy it!
 | FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int size, char value)` | --- | Fills an area of ​​VRAM with the same value. |
 | CopyToVRAM     | `CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size)` | --- | Block transfer from memory to VRAM    |
 | CopyFromVRAM   | `CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size)` | --- | Block transfer from VRAM to memory  |
-| SetVDPtoREAD   | `SetVDPtoREAD(unsigned int vaddr)`  | --- | Enable VDP to read (Similar to BIOS SETRD)   |
-| SetVDPtoWRITE  | `SetVDPtoWRITE(unsigned int vaddr)` | --- | Enable VDP to write (Similar to BIOS SETWRT) |
+| SetVDPtoREAD   | `SetVDPtoREAD(unsigned int vaddr)`  | --- | Sets the VDP to read VRAM mode and indicates the start address  |
+| SetVDPtoWRITE  | `SetVDPtoWRITE(unsigned int vaddr)` | --- | Sets the VDP to write VRAM mode and indicates the start address |
 
 <br/>
 
@@ -114,7 +114,7 @@ Enjoy it!
 | ---  | ---         | ---    | ---         |
 | SetSpritesSize  | `SetSpritesSize(char size)` | --- | Set size type for the sprites |
 | SetSpritesZoom  | `SetSpritesZoom(char zoom)` | --- | Set zoom type for the sprites |
-| ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) and Sprite Pattern Table |
+| ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) |
 | PUTSPRITE       | `PUTSPRITE(char plane, char x, char y, char color, char pattern)` | --- | Displays a sprite |
 | GetSPRattrVADDR | `GetSPRattrVADDR(char plane)` | `unsigned int` | Gets the VRAM address of the Sprite attributes of the specified plane |
 
@@ -126,8 +126,8 @@ Enjoy it!
 | ---   | ---         | ---         | ---          | ---            |
 | `readVDP`   | Provides the mirror value of a VDP register stored in system variables | `A` register number (0-7) | `A` value | `HL`, `DE` |
 | `writeVDP`  | Writes a value to VDP register | `A` - value<br/>`C` - register number (0-7) | --- | `IY`, `DE` |
-| `_SetVDPtoWRITE`    | Enable VDP to write.<br/>Similar to BIOS SETWRT. | `HL` VRAM address | --- | `A` |
-| `_SetVDPtoREAD`     | Enable VDP to read.<br/>Similar to BIOS SETRD. | `HL` VRAM address | --- | `A` |
+| `_SetVDPtoWRITE`    | Sets the VDP to write VRAM mode and indicates the start address | `HL` VRAM address | --- | `A` |
+| `_SetVDPtoREAD`     | Sets the VDP to read VRAM mode and indicates the start address  | `HL` VRAM address | --- | `A` |
 | `_WriteByteToVRAM`  | Writes a value to the video RAM.<br/>Same as VPOKE. | `HL` VRAM address<br/>`A` - value | --- | `A'` |
 | `_FastVPOKE`        | Writes a value to the last position in video RAM and increments it. | `A` value | --- | --- |
 | `_ReadByteFromVRAM` | Reads a value from VRAM | `HL` VRAM address | `A` | --- |
@@ -198,6 +198,8 @@ Test the functionality of the library in a system environment for ROM (BIOS+ROM+
 
 ![Example screenshot](docs/pics/EXAMPLE2_01.png) 
 
+![Example screenshot](docs/pics/EXAMPLE2_02.png) 
+
 <br/>
 
 ### Example 3 (MSX-DOS)
@@ -207,7 +209,9 @@ Test the functionality of the library in a system environment for MSX-DOS.
 
 [`examples/Example03`](examples/Example02)
 
-![Example screenshot](docs/pics/EXAMPLE2_02.png) 
+![Example screenshot](docs/pics/EXAMPLE2_04.png) 
+
+![Example screenshot](docs/pics/EXAMPLE2_06.png) 
 
 <br/>
 

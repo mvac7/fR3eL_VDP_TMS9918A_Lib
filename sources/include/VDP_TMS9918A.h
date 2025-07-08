@@ -359,8 +359,7 @@ void SetVDP(char reg, char value);
 /* =============================================================================
 SetVDPtoREAD
 Description:
-		Enable VDP to read and indicates the VRAM address where the reading 
-		will be performed.
+		Sets the VDP to read VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A
@@ -372,8 +371,7 @@ void SetVDPtoREAD(unsigned int vaddr);
 /* =============================================================================
 SetVDPtoWRITE
 Description: 
-		Enable VDP to write and indicates the VRAM address where the writing 
-		will be performed.
+		Sets the VDP to write VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
 Output:	-
 Regs:	A             
