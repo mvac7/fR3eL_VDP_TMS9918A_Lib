@@ -76,15 +76,20 @@
 
 C Library functions to work with the TMS9918A/28A/29A video processor.
 
-This library is designed to develop applications for MSX computers in any of the different environments available (ROM, MSX-DOS or MSX BASIC), using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
+This library contains a collection of functions for basic access to VDP capabilities, such as: 
+initializing display modes, accessing registers, accessing video memory, and displaying sprites.
 
-It is optimized to offer the highest possible speed when using the TMS9918A VDP, especially in functions that work with data blocks (FillVRAM, CopyToVRAM and CopyFromVRAM). Fast read/write functions (FastVPOKE and FastVPEEK) have been added, which access the next used video memory cell.
+It is optimized to offer the highest possible speed when using the TMS9918A VDP, especially in functions that work with data blocks (FillVRAM, CopyToVRAM and CopyFromVRAM). 
+Fast read/write functions (FastVPOKE and FastVPEEK) have been added, which access the next used video memory cell.
+
+It is designed to develop applications for MSX computers in any of the different environments available (ROM, MSX-DOS or MSX BASIC), 
+using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
 
 You can complement it with any of these libraries:
 - [VDP_PRINT](https://github.com/mvac7/fR3eL_VDP_PRINT_Lib) library with functions for display text strings in the graphic modes of the TMS9918A (G1 and G2).
 - [VDP_SPRITES](https://github.com/mvac7/SDCC_VDP_SPRITES_Lib) Library of functions for directly accessing sprite attributes from the TMS9918A video processor.
 
-You also have a [VDP_TMS9918A_MSXBIOS](https://github.com/mvac7/SDCC_VDP_TMS9918A_Lib) Library, developed using functions of the MSX BIOS. 
+You also have a [VDP_TMS9918A_MSXBIOS](https://github.com/mvac7/fR3eL_VDP_TMS9918A_MSXBIOS_Lib) Library, developed using functions of the MSX BIOS. 
 The advantage of using the BIOS is that the library is more compact and guarantees compatibility with all MSX models, but it has the disadvantage of being slow.
 
 These libraries are part of the [MSX fR3eL Project](https://github.com/mvac7/SDCC_MSX_fR3eL).
@@ -1253,6 +1258,10 @@ The COLOR function writes the given values ​​to the system variables: FORCLR
 
 Because the VDP registers cannot be queried, writing their values ​​has been included in the system variables used by the MSX. 
 If you want to adapt this library to another computer, you would need to remove it or move it to available memory.
+
+<br/>
+
+You should keep in mind that although this library allows you to work with the Text1 screen mode, you will find in this project the (TEXTMODE)[https://github.com/mvac7/SDCC_TEXTMODE_MSXROM_Lib] library with specific functions to facilitate the development of applications in text mode.
 
 <br/>
 

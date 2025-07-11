@@ -161,6 +161,7 @@ Sprite hiding coordinates
 
 
 
+
 /* =============================================================================
 SCREEN
 Description:
@@ -362,7 +363,6 @@ Description:
 		Sets the VDP to read VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
 Output:	-
-Regs:	A
 ============================================================================= */
 void SetVDPtoREAD(unsigned int vaddr);
 
@@ -373,8 +373,7 @@ SetVDPtoWRITE
 Description: 
 		Sets the VDP to write VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
-Output:	-
-Regs:	A             
+Output:	-  
 ============================================================================= */
 void SetVDPtoWRITE(unsigned int vaddr);
 
@@ -440,8 +439,8 @@ void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 GetSPRattrVADDR
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
-Input:	[char] [A] sprite plane (0-31) 
-Output:	[unsigned int] [HL] VRAM address
+Input:	[char] sprite plane (0-31) 
+Output:	[unsigned int] VRAM address
 ============================================================================= */
 unsigned int GetSPRattrVADDR(char plane);
 
@@ -470,8 +469,8 @@ Label:	readVDP
 Description:
 		Gets the value in a VDP register.
 		Provides the mirror value of a VDP register stored in system variables.
-Input:	[A] register number (0-7)           
-Output:	[A] value
+Input:	A - register number (0-7)           
+Output:	A - value
 Regs:	HL,DE
 
 --------------------------------------------------------------------------------
@@ -527,8 +526,8 @@ Label: GetSpritePattern
 Description: 
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
-Input:	[E] sprite pattern 
-Output: [E] pattern position
+Input:	E - sprite pattern 
+Output: E - pattern position
 Regs:	A
 
 ============================================================================= */

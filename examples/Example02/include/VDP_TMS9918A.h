@@ -161,18 +161,19 @@ Sprite hiding coordinates
 
 
 
+
 /* =============================================================================
 SCREEN
 Description:
 		Initializes the display to one of the four standardized modes on the MSX.
-		- T1 and G1 modes are initialized the map (Pattern Name Table) with 
-		  value 0. 
-		- In Graphic2 and MultiColor modes are initialized in an orderly manner 
-		  (as in MSX BASIC) to be able to display an image directly.
-		- In the graphic modes the sprites are initialized. 
+		- All screen modes will be initialized with the pattern name table set 
+		  to 0, just like the CLS function.  
+		- Initialization of the color table in GRAPHIC1 mode 
+		  (based on the values ​​previously given by the COLOR function).
+		- Initializing the Sprite Attribute Table (OAM) in graphic modes.
 		
 Input:	[char] number of screen mode
-			0 = TextMode1
+			0 = Text1
 			1 = Graphic1
 			2 = Graphic2
 			3 = MultiColor
@@ -186,7 +187,7 @@ void SCREEN(char mode);
 SortG2map 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a G2 (256x192px) image.
+		Designed to be able to display a Graphic2 (256x192px) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -198,7 +199,7 @@ void SortG2map(void);
 SortMCmap 
 Description: 
 		Initializes the pattern name table, with sorted values. 
-		Designed to be able to display a MC (64x48 blocks) image.
+		Designed to be able to display a MultiColor (64x48 blocks) image.
 Input:	-
 Output:	-
 ============================================================================= */
@@ -210,8 +211,7 @@ void SortMCmap(void);
 CLS 
 Description: 
 		 Clear Screen
-		 Fill the Name Table with the value 0
-		 Note: Does not clear the sprite attribute table (OAM)
+		 Fill VRAM Name Table with the value 0
 Input:	-
 Output:	-
 ============================================================================= */
@@ -224,11 +224,12 @@ COLOR
 Description:
 		Specifies the ink, foreground and background colors.
 		This function has different behaviors depending on the screen mode.
-		In T1 (text) mode, the color change is instantaneous except the 
+		In Text1 mode, the color change is instantaneous except the 
 		border color which has no effect.
-		In G1, G2 and MC modes, only the border color has an instant effect. 
-		Ink and background colors are only used when starting the screen with 
-		the SCREEN() function.
+		In Graphic1, Graphic2 and Multicolor modes, only the border color has 
+		an instant effect. 
+		Ink and background colors are only used when starting the screen in
+		Graphic1 mode.
 
 Input:	[char] ink color
 		[char] background color
@@ -293,7 +294,7 @@ extern char FastVPEEK(void);
 /* =============================================================================
 FillVRAM                               
 Description:
-		Fill a large area of the VRAM of the same value.
+		Fills an area of ​​VRAM with the same value.
 Input:	[unsigned int] VRAM address
 		[unsigned int] block size
 		[char] Value to fill
@@ -332,10 +333,10 @@ void CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size);
 /* =============================================================================
 GetVDP
 Description:
-		Provides the mirror value of a VDP register stored in system 
-		variables.
-Input:	[char] VDP register              
-Output:	[char] Value
+		Gets the value in a VDP register.
+		Provides the mirror value of a VDP register stored in system variables.
+Input:	[char] register number (0-7)           
+Output:	[char] value
 ============================================================================= */
 char GetVDP(char reg);
 
@@ -345,7 +346,7 @@ char GetVDP(char reg);
 SetVDP
 Description:
 		Writes a value to a VDP register
-Input:	[char] VDP register (0-7)                    
+Input:	[char] register number (0-7)                    
 		[char] value
 Output:	-
 ============================================================================= */
@@ -353,14 +354,15 @@ void SetVDP(char reg, char value);
 
 
 
+
+
+
 /* =============================================================================
 SetVDPtoREAD
 Description:
-		Enable VDP to read and indicates the VRAM address where the reading 
-		will be performed. (Similar to BIOS SETRD)
+		Sets the VDP to read VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
 Output:	-
-Regs:	A
 ============================================================================= */
 void SetVDPtoREAD(unsigned int vaddr);
 
@@ -369,11 +371,9 @@ void SetVDPtoREAD(unsigned int vaddr);
 /* =============================================================================
 SetVDPtoWRITE
 Description: 
-		Enable VDP to write and indicates the VRAM address where the writing 
-		will be performed. (Similar to BIOS SETWRT)
+		Sets the VDP to write VRAM mode and indicates the start address.
 Input:	[unsigned int] VRAM address
-Output:	-
-Regs:	A             
+Output:	-  
 ============================================================================= */
 void SetVDPtoWRITE(unsigned int vaddr);
 
@@ -439,9 +439,8 @@ void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 GetSPRattrVADDR
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
-		Same as MSX BIOS CALATR
-Input:	[char] [A] sprite plane (0-31) 
-Output:	[unsigned int] [HL] VRAM address
+Input:	[char] sprite plane (0-31) 
+Output:	[unsigned int] VRAM address
 ============================================================================= */
 unsigned int GetSPRattrVADDR(char plane);
 
@@ -451,18 +450,86 @@ unsigned int GetSPRattrVADDR(char plane);
 
 
 
-// ############################################################################# ASSEMBLE INLINE RUTINES
+/* ############################################################################# 
+                                                         ASSEMBLE INLINE RUTINES
 
 
+--------------------------------------------------------------------------------
+Label:	writeVDP
+Description:
+		Writes a value to a VDP register and 
+		saves the value in the system variables.
+Input:	A  - value
+        C  - register number (0-7) 
+Output:	-
+Registers: IY, DE
 
-/* =============================================================================
-Label:	GetSpritePattern
+--------------------------------------------------------------------------------
+Label:	readVDP
+Description:
+		Gets the value in a VDP register.
+		Provides the mirror value of a VDP register stored in system variables.
+Input:	A - register number (0-7)           
+Output:	A - value
+Regs:	HL,DE
+
+--------------------------------------------------------------------------------
+Label:	WriteByteToVRAM                                
+Description:
+		Writes a value to the video RAM. Same as VPOKE.
+Input:	HL - VRAM address
+		A - value
+Output:	-
+Regs:	A'
+
+--------------------------------------------------------------------------------
+Label:	ReadByteFromVRAM                                
+Description:
+		Reads a value from video RAM.
+Input:	HL - VRAM address
+Output:	A - value
+Regs:	-
+
+--------------------------------------------------------------------------------
+Label: fillVR                                
+Description:
+		Fill a large area of the VRAM of the same value.
+Input:	HL - VRAM address
+		DE - Size
+		A  - value
+Output:	-
+Regs:	BC
+
+--------------------------------------------------------------------------------
+Label: LDIR2VRAM
+Description:
+		Block transfer from memory to VRAM 
+Input:	DE - source Memory address
+		HL - target VRAM address
+		BC - block size
+Output:	-
+Regs:	A
+
+
+--------------------------------------------------------------------------------
+Label: GetBLOCKfromVRAM
+Description: 
+		Block transfer from VRAM to memory.  
+Input:	HL - source VRAM address                     
+		DE - target RAM address
+		BC - block size
+Output:	-
+Regs:	A
+
+--------------------------------------------------------------------------------
+Label: GetSpritePattern
 Description: 
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
-Input:	[E] sprite pattern 
-Output: [E] pattern position
+Input:	E - sprite pattern 
+Output: E - pattern position
 Regs:	A
+
 ============================================================================= */
 
 
