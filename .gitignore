@@ -1,4 +1,5 @@
 /_referencias/*
 **/build/*
 **/old/*
-**/_tmp/*
+**/_tmp*
+_old*.*
