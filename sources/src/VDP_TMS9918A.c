@@ -1,7 +1,7 @@
 /* ==============================================================================                                                                            
 # VDP_TMS9918A MSX Library (fR3eL Project)
 
-- Version: 1.5 (11/12/2023)
+- Version: 1.5 (11/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Environment: ROM, MSX-DOS or BASIC
@@ -21,7 +21,7 @@ Features:
 - Save VDP registers values in MSX System variables	
  
 ## History of versions (dd/mm/yyyy):
-- v1.5 (11/12/2023) Convert Assembler source code to C
+- v1.5 (11/07/2025) Convert Assembler source code to C
 					Update to SDCC (4.1.12) Z80 calling conventions
 					Added SetVDPtoREAD and SetVDPtoWRITE functions
 					Added FastVPOKE and FastVPEEK functions

@@ -46,7 +46,7 @@ Enjoy it!
 
 ## History of versions
 
-- v1.5 (11 December 2023):
+- v1.5 (11 July 2025):
 	- Convert Assembler source code to C
 	- Update to SDCC (4.1.12) Z80 calling conventions
 	- Added SetVRAMtoREAD and SetVRAMtoWRITE functions
