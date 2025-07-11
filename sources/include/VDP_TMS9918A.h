@@ -527,8 +527,8 @@ Description:
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
 Input:	E - sprite pattern 
-Output: E - pattern position
-Regs:	A
+Output: A - pattern position
+Regs:	-
 
 ============================================================================= */
 

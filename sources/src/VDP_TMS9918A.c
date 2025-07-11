@@ -1,7 +1,7 @@
 /* ==============================================================================                                                                            
 # VDP_TMS9918A MSX Library (fR3eL Project)
 
-- Version: 1.5 (11/07/2025)
+- Version: 1.6 (11/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Environment: ROM, MSX-DOS or BASIC
@@ -21,16 +21,20 @@ Features:
 - Save VDP registers values in MSX System variables	
  
 ## History of versions (dd/mm/yyyy):
-- v1.5 (11/07/2025) Convert Assembler source code to C
-					Update to SDCC (4.1.12) Z80 calling conventions
-					Added SetVDPtoREAD and SetVDPtoWRITE functions
-					Added FastVPOKE and FastVPEEK functions
-					Added initialization of MULTICOLOR mode (in SCREEN function) 
-					with sorted map.
-					Added initialization of the color table in GRAPHIC1 mode 
-					(based on the values ​​previously given by the COLOR function).
-					The FillVRAM, CopyToVRAM, and CopyFromVRAM functions 
-					have been optimized for faster access to VRAM.
+- v1.6 (11/07/2025) 
+	- Bug Fix in SCREEN function
+	- Optimization of multiplications
+- v1.5 (11/07/2025) 
+	- Convert Assembler source code to C
+	- Update to SDCC (4.1.12) Z80 calling conventions
+	- Added SetVDPtoREAD and SetVDPtoWRITE functions
+	- Added FastVPOKE and FastVPEEK functions
+	- Added initialization of MULTICOLOR mode (in SCREEN function) with sorted map.
+	- Added initialization of the color table in GRAPHIC1 mode 
+	  (based on the values ​​previously given by the COLOR function).
+	- The FillVRAM, CopyToVRAM, and CopyFromVRAM functions have been optimized 
+	  for faster access to VRAM.
+	- Move PUTSPRITE function from VDP_SPRITE_MSXBIOS to this Lib
 - v1.4 (16/08/2022) Bug#2 (init VRAM addr in V9938) and code optimization 
 - v1.3 (23/07/2019) COLOR function improvements
 - v1.2 (04/05/2019)
@@ -70,7 +74,7 @@ mode;	//A
 __asm
 	push IX
 
-	xor  A
+	cp   #0
 	jr   Z,TMS_screen0$
 	cp   #1
 	jr   Z,TMS_screen1$
@@ -89,8 +93,8 @@ TMS_screen0$:
 
 	ld   HL,#mode_TXT1
 	;screen 0 > 40 columns mode
-	ld   A,#39  ;default value
-	ld   (#LINL40),A
+//	ld   A,#39  ;default value
+//	ld   (#LINL40),A
 	jr   TMS_setREGs$
 
 TMS_screen1$:
@@ -145,10 +149,13 @@ TMS_initG1$:
 	ld   A,(#BAKCLR)
 	ld   B,A 
 	ld   A,(#FORCLR)
-	sla  A
-	sla  A
-	sla  A
-	sla  A
+
+//multiply x16
+	add  A
+	add  A
+	add  A
+	add  A
+	
 	or   B
 	ld   DE,#32
 	ld   HL,#G1_COL
@@ -261,12 +268,13 @@ TMS_ROWloop$:
 	
 	SRL  A 
 	SRL  A		//row/4
-	SLA  A
-	SLA  A
-	SLA  A
-	SLA  A
-	SLA  A		//row*32
 	
+	ADD  A
+	ADD  A
+	ADD  A
+	ADD  A
+	ADD  A		//row*32
+		
 	ld   B,#32
 TMS_printROWloop$:
 	out  (VDPVRAM),A
@@ -373,28 +381,26 @@ __asm
 
 TMS_colorMode0$:
 	ld   A,(#BAKCLR)
-	ld   B,A 
+	ld   B,A
 	ld   A,(#FORCLR)
 
 TMS_SAVEcolorREG$:
-	sla  A
-	sla  A
-	sla  A
-	sla  A
-	or   B
-
-/* --------------------------------------------------------------------------  
-(info by Portar Doc)
-Register 7: colour register.
+/* --------------------------------------------------------------------------
+Register 7: colour register (info by Portar Doc)
   Bit  Name  Expl.
   0-3  TC0-3 Background colour in SCREEN 0 (also border colour in SCREEN 1-3)
-  4-7  BD0-3 Foreground colour in SCREEN 0      
--------------------------------------------------------------------------- */  
+  4-7  BD0-3 Foreground colour in SCREEN 0
+-------------------------------------------------------------------------- */
+	add  A	//multiply x16
+	add  A
+	add  A
+	add  A
+	or   B
+
 	ld   C,#0x07	//VDP reg 7
 	call writeVDP
 
 	pop  IX
-  
 __endasm;
 } 
 
@@ -975,19 +981,16 @@ __asm
   
 	ld   C,L		//x
 
-	call _GetSPRattrVADDR	//Input:A-plane; Output:HL-VRAM addr
-//	call _SetVDPtoWRITE		//VDP ready to write to VRAM
+	call _GetSPRattrVADDR	//Input:A<--plane; Output:HL-->VRAM address
 
 	ld   A,4(IX)	//y
-	call WriteByteToVRAM
+	call WriteByteToVRAM	//Input:HL<--VRAM address; A<--value
 
 	ld   A,C		//x
 	call _FastVPOKE
 
-
 	ld   E,6(IX)	//Sprite pattern
-	call GetSpritePattern	//Input:E; Output:E pattern position according to sprite size
-	ld   A,E
+	call GetSpritePattern	//Input:E; Output:A pattern position according to sprite size
 	call _FastVPOKE
 
 	ld   A,5(IX)	//color
@@ -1011,8 +1014,8 @@ unsigned int GetSPRattrVADDR(char plane) __naked
 {
 plane;		//A
 __asm
-	SLA  A    //*2
-	SLA  A    //*2
+	add  A
+	add  A				//multiply x 4
 	ld   E,A
 	ld   D,#0
 	ld   HL,#SPR_OAM	//base 8/13/18 sprite attribute table
@@ -1025,7 +1028,7 @@ Description:
 		Returns the pattern value according to the Sprite size 
 		(multiplied by 4 when its 16x16).
 Input:	[E] sprite pattern 
-Output: [E] pattern position
+Output: [A] pattern position
 Regs:	A
 ============================================================================= */
 GetSpritePattern::
@@ -1033,11 +1036,14 @@ GetSpritePattern::
 	ld   A,(#RG0SAV+1)	// read vdp(1) from mem
 
 	bit  1,A			//Sprite size; 1=16x16
+	ld   A,E
 	ret  Z				//same value
 
 //if spritesize = 16x16 then E*4
-	SLA  E
-	SLA  E ;multiplica x4  
+    add  A				//(5ts)
+	add  A				//multiply x 4	
+//	SLA  E				//(10ts)
+//	SLA  E				//
 	ret	
 	
 __endasm;

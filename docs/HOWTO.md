@@ -1202,8 +1202,8 @@ __endasm;
 <tr><td colspan=3>Returns the pattern value according to the Sprite size<br/>(multiplied by 4 when its 16x16).</td></tr>
 <tr><th>Label</th><td colspan=2>GetSpritePattern</td></tr>
 <tr><th>Input</th><td>E</td><td>sprite pattern</td></tr>
-<tr><th>Output</th><td>E</td><td>pattern position</td></tr>
-<tr><th>Regs.</th><td colspan=2>A</td></tr>
+<tr><th>Output</th><td>A</td><td>pattern position</td></tr>
+<tr><th>Regs.</th><td colspan=2>-</td></tr>
 </table>
 
 ##### Example:
@@ -1217,13 +1217,11 @@ __asm
 
 	ld   E,L
 	
-	call _GetSPRattrVADDR	//Input: A -->plane; Output: HL -->VRAM addr
+	call _GetSPRattrVADDR	//Input: A<--plane; Output: HL-->VRAM addr
 	inc  HL
 	inc  HL
 
-	call GetSpritePattern	//Input: E -->Sprite pattern; Output: E -->pattern position
-	ld   A,E
-	
+	call GetSpritePattern	//Input: E<--Sprite pattern; Output: A-->pattern position
 	jp   WriteByte2VRAM
 
 __endasm;

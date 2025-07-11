@@ -46,6 +46,9 @@ Enjoy it!
 
 ## History of versions
 
+- v1.6 (11/07/2025) 
+	- Bug Fix in SCREEN function
+	- Optimization of multiplications
 - v1.5 (11 July 2025):
 	- Convert Assembler source code to C
 	- Update to SDCC (4.1.12) Z80 calling conventions
@@ -140,7 +143,7 @@ Enjoy it!
 | `LDIR2VRAM`         | Block transfer from memory to VRAM | `BC` blocklength<br/>`DE` source Memory address<br/>`HL` target VRAM address | --- | `A` |
 | `GetBLOCKfromVRAM`  | Block transfer from VRAM to memory | `BC` blocklength<br/>`HL` source VRAM address<br/>`DE` target RAM address | --- | `A` |
 | `_GetSPRattrVADDR`  | Gets the VRAM address of the Sprite attributes of the specified plane | `A` sprite plane (0-31) | `HL` VRAM address | `DE` |
-| `GetSpritePattern`  | Returns the pattern value according to the Sprite size | `E` sprite pattern | `E` pattern position | `A` |
+| `GetSpritePattern`  | Returns the pattern value according to the Sprite size | `E` sprite pattern | `A` pattern position | --- |
 
 <br/>
 
