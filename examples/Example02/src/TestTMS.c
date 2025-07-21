@@ -1,7 +1,7 @@
 /* =============================================================================
 # TestTMS
 
-- Version: 1.4 (26/06/2025)
+- Version: 1.5 (20/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Format: MSX ROM 8K
@@ -12,9 +12,14 @@
 Test VDP_TMS9918A MSX Library (fR3eL Project)
  
 ## Histoy of versions: (dd/mm/yyyy)
-- v1.4 (26/06/2025)<Add TestCLS
-- v1.3 (14/12/2023) Update to SDCC (4.1.12) Z80 calling conventions
-					Test FastVPOKE function
+- v1.5 (20/07/2025)
+	- Added FastVPEEK test
+	- Added more Sprite tests
+- v1.4 (26/06/2025)
+	- Add TestCLS
+- v1.3 (14/12/2023) 
+	- Update to SDCC (4.1.12) Z80 calling conventions
+	- Test FastVPOKE function
 - v1.2 (23/07/2019)
 - v1.1 ( 4/05/2019)   
 ============================================================================= */
@@ -32,7 +37,7 @@ Test VDP_TMS9918A MSX Library (fR3eL Project)
 
 #define  HALT __asm halt __endasm   //wait for the next interrupt
 
-
+#define WAIT_TIME 100
 
 // ---------------------------------------------------------------------------- Labels
 
@@ -43,9 +48,10 @@ Test VDP_TMS9918A MSX Library (fR3eL Project)
 void WAIT(uint cicles);
 
 char PEEK(uint address);
-void POKE(char value, uint address);
+void POKE(uint address, char value);
 
 boolean isTxtMode(void);
+boolean isSPRITE16px(void);
 
 char GetVFrequency(void);
 
@@ -73,9 +79,15 @@ void testCLS(void);
 void testFill(void);
 void testVpeekVpoke(void);
 
-void testSprites(void);
+void initSprites(void);
+void setSpritesPatterns(void);
 void showSprites(char offset);
-char isSPRITE16px(void);
+
+void testSprites(void);
+void testSpritePosition(void);
+void testSpriteColor(void);
+void testSpritePattern(void);
+void testSpriteVisible(void);
 
 //void ChangeVDPstatus(void);
 
@@ -85,7 +97,7 @@ char isSPRITE16px(void);
 
 
 // ---------------------------------------------------------------------------- Constants
-const char text01[] = "Test VDP_TMS9918A Lib v1.5"; 
+const char text01[] = "Test VDP_TMS9918A Lib"; 
 
 const char textMENU[5][30] = {
 "[F1] Test TEXT1     (Screen0)",
@@ -98,6 +110,7 @@ const char text10[] = "Test CLS()";
 
 const char textVers[4][7] = {"MSX1","MSX2","MSX2+","turboR"};
 const char textVFreq[2][5] = {"NTSC","PAL"};
+const char CheckResult[2][8] = {"=ERROR!","=Ok    "};
 
 //const char msg_PressKey[] = "Press any key to continue";
 
@@ -257,7 +270,11 @@ const char tileset_06x8_COL2[]={
 0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4};
 
 
-const char sprcol[8]={12,2,3,7,6,8,9,14};
+const char sprcol[16]={
+12, 2, 3, 7,
+ 6, 8, 9,14,
+ 3,10,12,11,
+13, 9,10,15};
 
 
 // ---------------------------------------------------------
@@ -310,13 +327,39 @@ const char SPRITE_DATA[]={
 0xE0,0x60,0xE0,0x20,0x60,0xC0,0x40,0x60};
 
 
+// Sine
+// Length=255; Min=16; Max=144; Freq=1; Phase=0
+const char SIN[]={
+0x50,0x52,0x53,0x55,0x56,0x58,0x59,0x5B,0x5D,0x5E,0x60,0x61,0x63,0x64,0x66,0x67,
+0x69,0x6A,0x6B,0x6D,0x6E,0x70,0x71,0x72,0x74,0x75,0x76,0x78,0x79,0x7A,0x7B,0x7C,
+0x7D,0x7E,0x80,0x81,0x82,0x83,0x84,0x84,0x85,0x86,0x87,0x88,0x89,0x89,0x8A,0x8B,
+0x8B,0x8C,0x8C,0x8D,0x8D,0x8E,0x8E,0x8F,0x8F,0x8F,0x8F,0x90,0x90,0x90,0x90,0x90,
+0x90,0x90,0x90,0x90,0x90,0x8F,0x8F,0x8F,0x8F,0x8E,0x8E,0x8E,0x8D,0x8D,0x8C,0x8C,
+0x8B,0x8A,0x8A,0x89,0x88,0x87,0x87,0x86,0x85,0x84,0x83,0x82,0x81,0x80,0x7F,0x7E,
+0x7D,0x7C,0x7B,0x79,0x78,0x77,0x76,0x74,0x73,0x72,0x70,0x6F,0x6E,0x6C,0x6B,0x69,
+0x68,0x66,0x65,0x63,0x62,0x60,0x5F,0x5D,0x5C,0x5A,0x59,0x57,0x56,0x54,0x52,0x51,
+0x4F,0x4E,0x4C,0x4A,0x49,0x47,0x46,0x44,0x43,0x41,0x40,0x3E,0x3D,0x3B,0x3A,0x38,
+0x37,0x35,0x34,0x32,0x31,0x30,0x2E,0x2D,0x2C,0x2A,0x29,0x28,0x27,0x25,0x24,0x23,
+0x22,0x21,0x20,0x1F,0x1E,0x1D,0x1C,0x1B,0x1A,0x19,0x19,0x18,0x17,0x16,0x16,0x15,
+0x14,0x14,0x13,0x13,0x12,0x12,0x12,0x11,0x11,0x11,0x11,0x10,0x10,0x10,0x10,0x10,
+0x10,0x10,0x10,0x10,0x10,0x11,0x11,0x11,0x11,0x12,0x12,0x13,0x13,0x14,0x14,0x15,
+0x15,0x16,0x17,0x17,0x18,0x19,0x1A,0x1B,0x1C,0x1C,0x1D,0x1E,0x1F,0x20,0x22,0x23,
+0x24,0x25,0x26,0x27,0x28,0x2A,0x2B,0x2C,0x2E,0x2F,0x30,0x32,0x33,0x35,0x36,0x37,
+0x39,0x3A,0x3C,0x3D,0x3F,0x40,0x42,0x43,0x45,0x47,0x48,0x4A,0x4B,0x4D,0x4E,0x50};
+
+
+
 
 // ---------------------------------------------------------------------------- Global Variables
 uint vprint_addr;
 uint time;
 boolean VDPstatus;
 
+char spr_posX[16];
+char spr_posY[16];
+
 char tilesetBakup[1024];
+
 
 
 // ---------------------------------------------------------------------------- Functions
@@ -352,19 +395,24 @@ __asm
 
   ld   A,(HL)
 
-  ret
+  ret		//return A
 __endasm;
 }
 
 
 
-void POKE(char value, uint address) __naked
+void POKE(uint address, char value)
 {
 address;value;
 __asm
-	ex	DE,HL
+	push IX
+	ld   IX,#0
+	add  IX,SP
+
+	ld   A,4(IX)
 	ld   (HL),A
-	ret
+
+	pop  IX  
 __endasm;
 }
 
@@ -439,7 +487,6 @@ Output:	0=60Hz(NTSC), 1=50Hz(PAL)
 char GetVFrequency(void) __naked
 {
 __asm
-//	push IX
 
 ; -----------------------------------
 	ld   A,(#0x002D)	//MSXVER=002D MSX version number (0=MSX,1=MSX2,2=MSX2+,3=TurboR)
@@ -461,12 +508,10 @@ readHZfromVDP:
   
 VFreq_isPAL:
 	ld   A,#1
-//	pop  IX
 	ret
   
 VFreq_isNTSC:  
 	xor  A
-//	pop  IX  
 	ret  
 __endasm;
 }
@@ -475,9 +520,16 @@ __endasm;
 
 boolean isTxtMode(void)
 {
-	char VDP1 = *(unsigned int *) 0xF3E0;	//A=PEEK(0xF3E0)  RG1SAV=0xF3E0 (System var)
-	if (VDP1&0b00010000) return true; //Text 40col Mode
-	return false;		
+	char VDP1 = *(unsigned int *) 0xF3E0;	//RG1SAV=0xF3E0 (System var)
+	return VDP1 & 0b00010000;	
+}
+
+
+
+boolean isSPRITE16px(void)
+{
+	char VDP1 = *(unsigned int *) 0xF3E0;	//RG1SAV=0xF3E0 (System var)
+	return VDP1 & 0b00000010;
 }
 
 
@@ -502,14 +554,6 @@ void VPRINT(char* text)
 
 
 
-char isSPRITE16px(void)
-{
-	char A = *(unsigned int *) (RG0SAV+1);
-	return A & 2;
-}
-
-
-
 void ClearVRAM(void)
 {	
 	FillVRAM(0,0x3FFF,0x00);
@@ -517,9 +561,6 @@ void ClearVRAM(void)
 
 
 
-/* =============================================================================
-
-============================================================================= */
 void ShowMenu(void)
 {
 	char i;
@@ -677,14 +718,14 @@ void testSCREEN0(void)
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE2,128*8);
 
 	VLOCATE(31,23);
-	VPRINT(" SCREEN 0");
-	WAIT(50);
+	VPRINT(" SCREEN 0");	
+	WAIT(WAIT_TIME);
 
 	testVpeekVpoke();
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 	testFill();
-	WAIT(100);
+	WAIT(WAIT_TIME);
 	
 	testCLS();
 }
@@ -704,12 +745,12 @@ void testSCREEN1(void)
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,G1_PAT,128*8); 
 
 	VLOCATE(23,23);
-	VPRINT(" SCREEN 1");
-	WAIT(50);
+	VPRINT(" SCREEN 1");	
+	WAIT(WAIT_TIME);
 
 	SetVDPtoWRITE(G1_MAP);
 	for(i=0;i<255;i++) FastVPOKE(i);
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 	/* colors
 	The BG Colors array defines 32 colors (each 4 bit background, and 4 bit 
@@ -719,11 +760,11 @@ void testSCREEN1(void)
 	CopyToVRAM((uint) tileset_06x8_COL2,G1_COL,32);
 	//FillVRAM(G1_COL,32,0xF4);
 	
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 	//test fill VRAM 
 	testFill();
-	WAIT(100);
+	WAIT(WAIT_TIME);
 	
 	testCLS();
 }
@@ -745,7 +786,8 @@ void testSCREEN2(void)
 	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
 
 	VLOCATE(23,23);
-	VPRINT(" SCREEN 2");
+	VPRINT(" SCREEN 2");	
+	WAIT(WAIT_TIME);
 
 	//copy to VRAM tileset, only gfx patterns and fill colors
 	//bank 0
@@ -753,14 +795,14 @@ void testSCREEN2(void)
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE12,128*8);
 	FillVRAM(BASE11,128*8,0x96);		//colors (Red)
 	
-	WAIT(50);
+	WAIT(WAIT_TIME);
 	
 	//test CopyFromVRAM
 	VLOCATE(0,5);
 	VPRINT("Test CopyFromVRAM()");
 	//copy VRAM to RAM
 	CopyFromVRAM(BASE12,(uint) tilesetBakup,128*8);
-	WAIT(50);
+	WAIT(WAIT_TIME);
 	
 	
 	//test CopyToVRAM 
@@ -769,7 +811,7 @@ void testSCREEN2(void)
 	//copy VRAM to RAM
 	CopyToVRAM((uint) tilesetBakup,BASE12+BANK1,128*8);
 	FillVRAM(BASE11+BANK1,128*8,0x3C);	//colors (green)
-	WAIT(50);
+	WAIT(WAIT_TIME);
 	
 	//test CopyToVRAM 
 	VLOCATE(0,7);
@@ -778,11 +820,11 @@ void testSCREEN2(void)
 	CopyToVRAM((uint) tilesetBakup,BASE12+BANK2,128*8);
 	FillVRAM(BASE11+BANK2,128*8,0x54);	//colors (blue)
 	
-	WAIT(120);	
+	WAIT(WAIT_TIME);	
 	
 	//test fill VRAM  
 	testFill();
-	WAIT(100);
+	WAIT(WAIT_TIME);
 	
 	testCLS();
 }
@@ -793,7 +835,7 @@ void testSCREEN2(void)
 void testSCREEN3(void)
 {
 	char value=0;
-	char loop;
+	char i;
 	char loopLine;
 	
 	ClearVRAM();
@@ -817,15 +859,14 @@ void testSCREEN3(void)
 
 	value=0;
 	SetVDPtoWRITE(BASE17);
-	//for(loop=0;loop<0x600;loop++)
-	for(loop=0;loop<192;loop++)
+
+	for(i=0;i<192;i++)
 	{
 		HALT;
 		for(loopLine=0;loopLine<8;loopLine++) FastVPOKE(value++);
 	}
-	//for(i=0;i<0x300;i++) VPOKE(BASE15+i,value++);  //name table in order
 
-	WAIT(100);
+	WAIT(WAIT_TIME);
 	CLS();
 	WAIT(150);
 }
@@ -834,7 +875,7 @@ void testSCREEN3(void)
 
 void testCLS(void)
 {
-	unsigned int BC;
+	unsigned int i;
 	unsigned int vaddr;	
 	unsigned int vsize;
 	boolean testResult=true;
@@ -854,17 +895,15 @@ void testCLS(void)
 	WAIT(150);
 	
 	CLS();
-	WAIT(25);
+	WAIT(WAIT_TIME);
 	
-	for(BC=0;BC<vsize;BC++) if(VPEEK(vaddr++)!=0) testResult=false;
+	for(i=0;i<vsize;i++) if(VPEEK(vaddr++)!=0) testResult=false;
 		
-	WAIT(25);
 	VLOCATE(0,0);
 	VPRINT(text10);
-	if(testResult==true) VPRINT("=Ok");
-	else VPRINT("=ERROR!");
+	VPRINT(CheckResult[testResult]);
 	
-	WAIT(150);
+	WAIT(200);
 }
 
 
@@ -875,28 +914,52 @@ void testVpeekVpoke(void)
 {
 	uint vaddr;
 	char i;
-	char value;
-
-	//test FastVPOKE
-	VLOCATE(0,0);
-	VPRINT("Test FastVPOKE:");
-	SetVDPtoWRITE(BASE0+40);
-	for(i=0;i<255;i++) FastVPOKE(i);
-
-	WAIT(100);
-
+	char posY=0;
+	boolean testResult;
+	
 	//test VPOKE & VPEEK
-	VLOCATE(0,9);
-	VPRINT("Test VPEEK and VPOKE:");
+	VLOCATE(0,posY);
+	VPRINT("Test VPOKE");
 	vaddr=BASE0+40;
 	for(i=0;i<255;i++)
 	{
 		HALT;
-		value = VPEEK(vaddr);
-		VPOKE(vaddr+(10*40),value);
-		vaddr++;  
+		VPOKE(vaddr++,i);
 	}
+	
+	//test VPEEK
+	vaddr=BASE0+40;
+	testResult=true;
+	posY+=(256/40)+2;
+	VLOCATE(0,posY);
+	VPRINT("Test VPEEK");
+	for(i=0;i<255;i++){
+		if (VPEEK(vaddr++)!=i){testResult=false;break;}
+	}
+	VPRINT(CheckResult[testResult]);
+	WAIT(WAIT_TIME);
 
+	//test FastVPOKE
+	posY+=2;
+	vaddr=BASE0+(40*10);
+	VLOCATE(0,posY);
+	VPRINT("Test FastVPOKE");
+	SetVDPtoWRITE(vaddr);
+	for(i=0;i<255;i++) FastVPOKE(i);
+	WAIT(WAIT_TIME);
+	
+	//test FastVPEEK
+	vaddr=BASE0+(40*10);
+	testResult=true;
+	posY+=(256/40)+2;
+	VLOCATE(0,posY);
+	VPRINT("Test FastVPEEK");
+	SetVDPtoREAD(vaddr);	
+	for(i=0;i<255;i++){
+		if (FastVPEEK()!=i){testResult=false;break;}
+	}
+	VPRINT(CheckResult[testResult]);	
+	WAIT(WAIT_TIME);
 }
 
 
@@ -936,71 +999,198 @@ void testFill(void)
 // ################################################################ TEST Sprites
 void testSprites(void)
 {
+	char posY=0;
+	
+	initSprites();
+	
 	COLOR(0,0,1);
 	SCREEN(1);
 
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
 	CopyToVRAM((uint) font01Bold_sc06x8_COL,BASE6,32);
-	CopyToVRAM((uint) SPRITE_DATA,BASE14,32*10);
+	
+	setSpritesPatterns();
 
-	VLOCATE(0,0);
-	VPRINT("Test Sprites");  
+	VLOCATE(0,posY++);
+	VPRINT("Test SPRITEs -----------------");  
 	WAIT(50);
 
 	// sprites 8x8
 	//setupSprites(0,false); //16x16 no zoom
-	VLOCATE(0,2);
+	VLOCATE(0,posY++);
 	VPRINT("SetSpritesSize(0) SPRITES 8x8");
 	SetSpritesSize(0);
 	SetSpritesZoom(false);  
 	showSprites(0);
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 	// test sprites 16x16
 	//setupSprites(1,false);
-	VLOCATE(0,3);
+	VLOCATE(0,posY++);
 	VPRINT("SetSpritesSize(1) SPRITES 16x16");
+	ClearSprites();
 	SetSpritesSize(1);
 	showSprites(2);
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 	// test sprites 16x16 + zoom  
 	//setupSprites(1,true);
-	VLOCATE(0,4);
+	VLOCATE(0,posY++);
 	VPRINT("SetSpritesZoom(true) SPRITES x2");
 	SetSpritesZoom(true);
-	WAIT(100);
+	WAIT(WAIT_TIME);
 
 
-	VLOCATE(0,5);
+	VLOCATE(0,posY++);
 	VPRINT("ClearSprites()");
 	ClearSprites();
-	WAIT(150);
+	WAIT(WAIT_TIME);
+	
+	setSpritesPatterns();
+	VLOCATE(0,posY++);
+	VPRINT("PUTSPRITE(plane,x,y,color,patt)");
+	showSprites(2);
+	WAIT(WAIT_TIME);	
+
+	VLOCATE(0,posY++);
+	VPRINT("Visible");
+	testSpriteVisible();
+
+	VLOCATE(0,posY++);
+	VPRINT("Change Pattern"); 
+	testSpritePattern();
+
+	VLOCATE(0,posY++);
+	VPRINT("Change Color"); 
+	testSpriteColor();
+
+	VLOCATE(0,posY++);
+	VPRINT("Change Position");
+	testSpritePosition();
+	WAIT(WAIT_TIME);
+
+	VLOCATE(0,posY++);
+	VPRINT("Set EarlyClock");
+	PUTSPRITE(7, spr_posX[7], spr_posY[7], sprcol[7]+0b10000000, 9);
+	WAIT(WAIT_TIME);
+
+	VLOCATE(0,posY++);
+	VPRINT("Unset EarlyClock");
+	PUTSPRITE(7, spr_posX[7], spr_posY[7], sprcol[7], 9);
+	
+	VLOCATE(0,posY);
+	VPRINT("End SPRITE test");	
+	WAIT(200);
 }
+
+
+
+// Copy sprites data from memory to VRAM
+void setSpritesPatterns(void)
+{
+	CopyToVRAM((uint) SPRITE_DATA,BASE14,32*10);
+}
+
+
+
+void initSprites(void)
+{
+	char X=0,Y=2;
+	char i=0;
+
+	for(i=0;i<16;i++)
+	{
+		spr_posX[i]=X*32;
+		spr_posY[i]=Y*32;
+		X++;
+		if(X==4)
+		{
+			X=0;
+			Y++;
+		}
+	}
+}
+
 
 
 
 // ############################################################# TEST PUTSPRITE
 void showSprites(char offset)
 {
-	char X=2,Y=2;
 	char i=0;
 	char sprpat=0;
 	
-	/*VLOCATE(7,11);
-	DrawBox(18,11);*/
+	for(i=0;i<16;i++)
+	{
+		PUTSPRITE(i, spr_posX[i], spr_posY[i], sprcol[i], sprpat+offset);
+		sprpat++;
+		if (sprpat>7) sprpat=0;
+		WAIT(10);
+	}
+}
+
+
+
+void testSpriteVisible(void)
+{
+	char i,o;
+
+	for(o=0;o<8;o++)
+	{
+		for(i=0;i<16;i++)
+		{
+			if (i==o) PUTSPRITE(i, spr_posX[i], spr_posY[i], sprcol[i], i+2);
+			else PUTSPRITE(i, 0, SPRITES_YHIDDEN, 0, 0);  
+		}
+		WAIT(25);  
+	}  
+}
+
+
+
+// TEST SETSPRITEPATTERN  ######################################################
+void testSpritePattern(void)
+{
+	char i;
+
+	for(i=2;i<10;i++)
+	{
+		PUTSPRITE(7, spr_posX[7], spr_posY[7], sprcol[7], i);
+		WAIT(25);  
+	}  
+}
+
+
+
+// TEST SETSPRITECOLOR  ########################################################
+void testSpriteColor(void)
+{
+	char i;
 
 	for(i=0;i<16;i++)
 	{
-		PUTSPRITE(i, X*32, Y*32, sprcol[sprpat], sprpat+offset);
-		sprpat++;
-		X++;
-		if(X==6)
-		{
-			X=2;
-			Y++;
-		}
-		if (sprpat>7) sprpat=0;
+		PUTSPRITE(7, spr_posX[7], spr_posY[7], i, 9);
+		WAIT(25);  
+	}  
+}
+
+
+
+// TEST SETSPRITEPOSITION  #####################################################
+void testSpritePosition(void)
+{
+	uint i=0;
+	char gradX = 64;
+	char gradY = 0;
+
+	for(i=0;i<660;i++)
+	{
+		HALT;
+		spr_posX[7]=SIN[gradX];
+		spr_posY[7]=SIN[gradY];		
+		PUTSPRITE(7, spr_posX[7], spr_posY[7], 14, 9);
+		gradX++;
+		gradY++;
 	}
 }
 

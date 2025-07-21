@@ -45,7 +45,7 @@
 		- [4.4.2 SetSpritesZoom](#443-SetSpritesZoom)
 		- [4.4.3 ClearSprites](#441-ClearSprites)
 		- [4.4.4 PUTSPRITE](#444-PUTSPRITE)
-		- [4.4.5 GetSPRattrVADDR](#445-GetSPRattrVADDR)		
+		- [4.4.5 GetSPRattrVRAM](#445-GetSPRattrVRAM)		
 	- [4.5 Inline assembler](#45-Inline-assembler)
 		- [4.5.1 writeVDP](#451-writeVDP)	
 		- [4.5.2 readVDP](#452-readVDP)
@@ -603,7 +603,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 ```c
 	char sprY,sprX,sprPattern,sprColor;
-	unsigned int vaddr = GetSPRattrVADDR(10); //Gets the VRAM address of the Sprite attributes of plane 10.
+	unsigned int vaddr = GetSPRattrVRAM(10); //Gets the VRAM address of the Sprite attributes of plane 10.
 	sprY=VPEEK(vaddr);
 	sprX=FastVPEEK();
 	sprPattern=FastVPEEK();
@@ -819,13 +819,13 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 <br/>
 
-#### 4.4.5 GetSPRattrVADDR
+#### 4.4.5 GetSPRattrVRAM
 
 <table>
-<tr><th colspan=3 align="left">GetSPRattrVADDR</th></tr>
-<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.</td></tr>
-<tr><th>Function</th><td colspan=2>GetSPRattrVADDR(plane)</td></tr>
-<tr><th>Input</th><td>char</td><td>sprite plane (0-31) </td></tr>
+<tr><th colspan=3 align="left">GetSPRattrVRAM</th></tr>
+<tr><td colspan=3>Gets the address in video memory of the Sprite attributes of specified plane.</td></tr>
+<tr><th>Function</th><td colspan=2>GetSPRattrVRAM(plane)</td></tr>
+<tr><th>Input</th><td>char</td><td>sprite plane (0-31)</td></tr>
 <tr><th>Output</th><td>unsigned int</td><td>VRAM address</td></tr>
 </table>
 
@@ -836,7 +836,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 	
 	SetSpritesSize(SPRITES16x16);
 	
-	vaddr=GetSPRattrVADDR(10);	//sprite plane 10
+	vaddr=GetSPRattrVRAM(10);	//sprite plane 10
 	
 	SetVRAMtoWRITE(vaddr);
 	FastVPOKE(120);
@@ -956,7 +956,7 @@ __endasm;
 <table>
 <tr><th colspan=3 align="left">WriteByteToVRAM</th></tr>
 <tr><td colspan=3>Writes a value to the video RAM. Same as VPOKE C function.</td></tr>
-<tr><th>Label</th><td colspan=2>_WriteByteToVRAM</td></tr>
+<tr><th>Label</th><td colspan=2>WriteByteToVRAM</td></tr>
 <tr><th rowspan=2>Input</th><td>HL</td><td>VRAM address</td></tr>
 <tr><td>A</td><td>value</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
@@ -969,7 +969,7 @@ __endasm;
 __asm
 	ld   HL,#SPR_OAM
 	ld   A,#0xD1
-	call _WriteByteToVRAM
+	call WriteByteToVRAM
 __endasm;
 ```
 
@@ -1009,7 +1009,7 @@ __endasm;
 __asm
 	ld   A,#0x84		//y
 	ld   HL,#SPR_OAM
-	call _WriteByteToVRAM
+	call WriteByteToVRAM
 	ld   A,#0xA0		//x
 	call _FastVPOKE
 	ld   A,#0x00		//pattern
@@ -1172,8 +1172,8 @@ __endasm;
 
 <table>
 <tr><th colspan=3 align="left">GetSPRattrVADDR</th></tr>
-<tr><td colspan=3>Gets the VRAM address of the Sprite attributes of the specified plane.</td></tr>
-<tr><th>Label</th><td colspan=2>_GetSPRattrVADDR</td></tr>
+<tr><td colspan=3>Gets the address in video memory of the Sprite attributes of specified plane.</td></tr>
+<tr><th>Label</th><td colspan=2>GetSPRattrVADDR</td></tr>
 <tr><th>Input</th><td>A</td><td>sprite plane (0-31)</td></tr>
 <tr><th>Output</th><td>HL</td><td>VRAM address</td></tr>
 <tr><th>Regs.</th><td colspan=2>DE</td></tr>
@@ -1184,8 +1184,8 @@ __endasm;
 ```asm
 __asm
 	ld   A,#10
-	call _GetSPRattrVADDR
-	call _SetVDPtoWRITE
+	call GetSPRattrVADDR		//Input: A<--Sprite plane; Output: HL-->VRAM addr
+	call _SetVDPtoWRITE			//Input: HL<--VRAM addr
 	ld   A,#SPRITES_YHIDDEN		//hidden sprite plane 10
 	call _FastVPOKE
 __endasm;
@@ -1217,7 +1217,7 @@ __asm
 
 	ld   E,L
 	
-	call _GetSPRattrVADDR	//Input: A<--plane; Output: HL-->VRAM addr
+	call GetSPRattrVADDR	//Input: A<--plane; Output: HL-->VRAM addr
 	inc  HL
 	inc  HL
 
@@ -1372,7 +1372,6 @@ void main(void)
  	SCREEN(GRAPHIC1);			//Set Screen 1
 	SetSpritesSize(SPRITES8x8);
 	SetSpritesZoom(1);			//zoom x2
-	
 
 // 2. Copy MSX BIOS font to VRAM Pattern Table ---------------------------------
 	CopyToVRAM(BIOSfont,G1_PAT,0x800);

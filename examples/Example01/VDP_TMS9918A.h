@@ -436,13 +436,13 @@ void PUTSPRITE(char plane, char x, char y, char color, char pattern);
 
 
 /* =============================================================================
-GetSPRattrVADDR
+GetSPRattrVRAM
 Description: 
 		Gets the VRAM address of the Sprite attributes of the specified plane
 Input:	[char] sprite plane (0-31) 
 Output:	[unsigned int] VRAM address
 ============================================================================= */
-unsigned int GetSPRattrVADDR(char plane);
+unsigned int GetSPRattrVRAM(char plane);
 
 
 

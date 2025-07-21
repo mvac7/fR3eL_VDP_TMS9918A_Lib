@@ -1,7 +1,7 @@
 /* ==============================================================================                                                                            
 # VDP_TMS9918A MSX Library (fR3eL Project)
 
-- Version: 1.6 (11/07/2025)
+- Version: 1.7 (17/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Environment: ROM, MSX-DOS or BASIC
@@ -21,9 +21,15 @@ Features:
 - Save VDP registers values in MSX System variables	
  
 ## History of versions (dd/mm/yyyy):
+
+- v1.7 (17/07/2025) 
+	- #14 Rename GetSPRattrVADDR function to GetSPRattrVRAM
+	  The GetSPRattrVADDR tag is now used for the inline assembler
+	- #15 Fix bug in GetSPRattrVRAM function
+	- #16 Change ClearMC function. Now clear the Pattern Table.
 - v1.6 (11/07/2025) 
-	- Bug Fix in SCREEN function
-	- Optimization of multiplications
+	- #12 Bug Fix in SCREEN function
+	- #13 Optimization of multiplications
 - v1.5 (11/07/2025) 
 	- Convert Assembler source code to C
 	- Update to SDCC (4.1.12) Z80 calling conventions
@@ -35,8 +41,10 @@ Features:
 	- The FillVRAM, CopyToVRAM, and CopyFromVRAM functions have been optimized 
 	  for faster access to VRAM.
 	- Move PUTSPRITE function from VDP_SPRITE_MSXBIOS to this Lib
-- v1.4 (16/08/2022) Bug#2 (init VRAM addr in V9938) and code optimization 
-- v1.3 (23/07/2019) COLOR function improvements
+- v1.4 (16/08/2022) 
+	- Bug#2 (init VRAM addr in V9938) and code optimization 
+- v1.3 (23/07/2019) 
+	- COLOR function improvements
 - v1.2 (04/05/2019)
 - v1.1 (25/04/2019) 
 - v1.0 (14/02/2014)                                                                             
@@ -318,13 +326,15 @@ ClearG1G2::
 	ld   DE,#0x300		//32*24
 	ld   HL,#G1_MAP
 	jp   fillVR
-  
+ 
+//MultiColor 64*48
 ClearMC::
 	xor  A
-	ld   DE,#0x300		//32*24 (2x2 blocks)
-	ld   HL,#MC_MAP		//Name Table
+	ld   DE,#0x600
+	ld   HL,#MC_PAT		//Pattern Table
 	jp   fillVR
-  
+ 
+//Text1
 ClearT1::
 	xor  A
 	ld   DE,#0x3C0		//40*24
@@ -427,6 +437,7 @@ __asm
 	
 	ld   A,4(IX)
 	call _FastVPOKE
+	
 	pop  IX
 __endasm;
 }
@@ -480,7 +491,7 @@ WriteByteToVRAM
 Description:
 		Writes a value to the video RAM. Same as VPOKE.
 Input:	HL - VRAM address
-		A - value
+		A  - value
 Output:	-
 Regs:	A'
 ============================================================================= */
@@ -981,7 +992,7 @@ __asm
   
 	ld   C,L		//x
 
-	call _GetSPRattrVADDR	//Input:A<--plane; Output:HL-->VRAM address
+	call GetSPRattrVADDR	//Input:A<--plane; Output:HL-->VRAM address
 
 	ld   A,4(IX)	//y
 	call WriteByteToVRAM	//Input:HL<--VRAM address; A<--value
@@ -1004,16 +1015,23 @@ __endasm;
 
 
 /* =============================================================================
-GetSPRattrVADDR
+GetSPRattrVRAM
 Description: 
-		Gets the VRAM address of the Sprite attributes of the specified plane
+		Gets the address in video memory of the Sprite attributes of specified 
+		plane.
 Input:	[char] sprite plane (0-31) 
 Output:	[unsigned int] VRAM address
 ============================================================================= */
-unsigned int GetSPRattrVADDR(char plane) __naked
+unsigned int GetSPRattrVRAM(char plane) __naked
 {
 plane;		//A
 __asm
+	call GetSPRattrVADDR	//Input: A-->Sprite plane; Output: HL-->VRAM addr
+	ex   DE,HL
+	ret
+
+
+GetSPRattrVADDR::
 	add  A
 	add  A				//multiply x 4
 	ld   E,A

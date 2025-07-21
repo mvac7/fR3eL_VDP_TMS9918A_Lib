@@ -46,9 +46,13 @@ Enjoy it!
 
 ## History of versions
 
+- v1.7 (17/07/2025) 
+	- #14 Rename GetSPRattrVADDR function to GetSPRattrVRAM. The GetSPRattrVADDR tag is now used for the inline assembler
+	- #15 Fix bug in GetSPRattrVRAM function
+	- #16 Change ClearMC function. Now clear the Pattern Table.
 - v1.6 (11/07/2025) 
-	- Bug Fix in SCREEN function
-	- Optimization of multiplications
+	- #12 Bug Fix in SCREEN function
+	- #13 Optimization of multiplications
 - v1.5 (11 July 2025):
 	- Convert Assembler source code to C
 	- Update to SDCC (4.1.12) Z80 calling conventions
@@ -123,7 +127,7 @@ Enjoy it!
 | SetSpritesZoom  | `SetSpritesZoom(char zoom)` | --- | Set zoom type for the sprites |
 | ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) |
 | PUTSPRITE       | `PUTSPRITE(char plane, char x, char y, char color, char pattern)` | --- | Displays a sprite |
-| GetSPRattrVADDR | `GetSPRattrVADDR(char plane)` | `unsigned int` | Gets the VRAM address of the Sprite attributes of the specified plane |
+| GetSPRattrVRAM  | `GetSPRattrVRAM(char plane)` | `unsigned int` | Gets the address in video memory of the Sprite attributes of specified plane |
 
 <br/>
 
@@ -135,14 +139,14 @@ Enjoy it!
 | `writeVDP`  | Writes a value to VDP register | `A` - value<br/>`C` - register number (0-7) | --- | `IY`, `DE` |
 | `_SetVDPtoWRITE`    | Sets the VDP to write VRAM mode and indicates the start address | `HL` VRAM address | --- | `A` |
 | `_SetVDPtoREAD`     | Sets the VDP to read VRAM mode and indicates the start address  | `HL` VRAM address | --- | `A` |
-| `_WriteByteToVRAM`  | Writes a value to the video RAM.<br/>Same as VPOKE. | `HL` VRAM address<br/>`A` - value | --- | `A'` |
+| `WriteByteToVRAM`  | Writes a value to the video RAM.<br/>Same as VPOKE. | `HL` VRAM address<br/>`A` - value | --- | `A'` |
 | `_FastVPOKE`        | Writes a value to the last position in video RAM and increments it. | `A` value | --- | --- |
 | `_ReadByteFromVRAM` | Reads a value from VRAM | `HL` VRAM address | `A` | --- |
 | `_FastVPEEK`        | Reads the next video RAM value. | --- | `A` | --- |
 | `fillVR`            | Fill a large area of the VRAM of the same value | `HL` VRAM address<br/>`DE` Size<br/>`A` value | --- | `BC` |
 | `LDIR2VRAM`         | Block transfer from memory to VRAM | `BC` blocklength<br/>`DE` source Memory address<br/>`HL` target VRAM address | --- | `A` |
 | `GetBLOCKfromVRAM`  | Block transfer from VRAM to memory | `BC` blocklength<br/>`HL` source VRAM address<br/>`DE` target RAM address | --- | `A` |
-| `_GetSPRattrVADDR`  | Gets the VRAM address of the Sprite attributes of the specified plane | `A` sprite plane (0-31) | `HL` VRAM address | `DE` |
+| `GetSPRattrVADDR`   | Gets the VRAM address of the Sprite attributes of the specified plane | `A` sprite plane (0-31) | `HL` VRAM address | `DE` |
 | `GetSpritePattern`  | Returns the pattern value according to the Sprite size | `E` sprite pattern | `A` pattern position | --- |
 
 <br/>

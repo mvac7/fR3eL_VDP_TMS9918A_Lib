@@ -70,7 +70,6 @@ void main(void)
  	SCREEN(GRAPHIC1);			//Set Screen 1
 	SetSpritesSize(SPRITES8x8);
 	SetSpritesZoom(1);			//zoom x2
-	
 
 // 2. Copy MSX BIOS font to VRAM Pattern Table ---------------------------------
 	CopyToVRAM(BIOSfont,G1_PAT,0x800);
