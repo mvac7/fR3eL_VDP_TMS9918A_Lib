@@ -86,10 +86,10 @@ Enjoy it!
 
 | Name      | Declaration | Output | Description |
 | :---      | :---        | :---   | :---        |
-| SCREEN    | `SCREEN(char mode)` | --- | Initializes the display |
+| SCREEN    | `SCREEN(mode)` | --- | Initializes the display |
 | SortG2map | `SortG2map()` | --- | Initializes the pattern name table with sorted values |
 | SortMCmap | `SortMCmap()` | --- | Initializes the pattern name table with sorted values |
-| COLOR     | `COLOR(char ink, char background, char border)` | --- | Set the foreground, background, and border screen colors |
+| COLOR     | `COLOR(ink, background, border)` | --- | Set the foreground, background, and border screen colors |
 | CLS       | `CLS()` | --- | Clear Screen. Fill VRAM Name Table with the value 0 |
 
 <br/>
@@ -98,8 +98,8 @@ Enjoy it!
 
 | Name   | Declaration | Output | Description |
 | :---   | :---        | :---   | :---        |
-| GetVDP | `GetVDP(char reg)`   | `char` | Gets the value in a VDP register.<br/>Provides the mirror value stored in system variables |
-| SetVDP | `SetVDP(char, char)` | ---    | Writes a value to a VDP register |
+| GetVDP | `GetVDP(reg)`        | `char` | Gets the value in a VDP register.<br/>Provides the mirror value stored in system variables |
+| SetVDP | `SetVDP(reg, value)` | ---    | Writes a value to a VDP register |
 
 <br/>
 
@@ -107,15 +107,15 @@ Enjoy it!
 
 | Name | Declaration | Output | Description |
 | ---  | ---         | ---    | ---         |
-| VPOKE          | `VPOKE(unsigned int vaddr, char value)` | --- | Writes a value to VRAM |
-| FastVPOKE      | `FastVPOKE(char value)`     | ---    | Writes a value to the next video RAM position |
-| VPEEK          | `VPEEK(unsigned int vaddr)` | `char` | Reads a value from VRAM |
-| FastVPEEK      | `FastVPEEK(char value)`     | `char` | Reads the next video RAM value |
-| FillVRAM       | `FillVRAM(unsigned int vaddr, unsigned int size, char value)` | --- | Fills an area of ​​VRAM with the same value. |
-| CopyToVRAM     | `CopyToVRAM(unsigned int addr, unsigned int vaddr, unsigned int size)` | --- | Block transfer from memory to VRAM    |
-| CopyFromVRAM   | `CopyFromVRAM(unsigned int vaddr, unsigned int addr, unsigned int size)` | --- | Block transfer from VRAM to memory  |
-| SetVDPtoREAD   | `SetVDPtoREAD(unsigned int vaddr)`  | --- | Sets the VDP to read VRAM mode and indicates the start address  |
-| SetVDPtoWRITE  | `SetVDPtoWRITE(unsigned int vaddr)` | --- | Sets the VDP to write VRAM mode and indicates the start address |
+| VPOKE          | `VPOKE(vaddr, value)`   | --- | Writes a value to VRAM |
+| FastVPOKE      | `FastVPOKE(value)`      | ---    | Writes a value to the next video RAM position |
+| VPEEK          | `VPEEK(vaddr)` | `char` | Reads a value from VRAM |
+| FastVPEEK      | `FastVPEEK(value)`      | `char` | Reads the next video RAM value |
+| FillVRAM       | `FillVRAM(vaddr, size, value)`    | --- | Fills an area of ​​VRAM with the same value. |
+| CopyToVRAM     | `CopyToVRAM(addr, vaddr, size)`   | --- | Block transfer from memory to VRAM    |
+| CopyFromVRAM   | `CopyFromVRAM(vaddr, addr, size)` | --- | Block transfer from VRAM to memory  |
+| SetVDPtoREAD   | `SetVDPtoREAD(vaddr)`  | --- | Sets the VDP to read VRAM mode and indicates the start address  |
+| SetVDPtoWRITE  | `SetVDPtoWRITE(vaddr)` | --- | Sets the VDP to write VRAM mode and indicates the start address |
 
 <br/>
 
@@ -123,11 +123,11 @@ Enjoy it!
 
 | Name | Declaration | Output | Description |
 | ---  | ---         | ---    | ---         |
-| SetSpritesSize  | `SetSpritesSize(char size)` | --- | Set size type for the sprites |
-| SetSpritesZoom  | `SetSpritesZoom(char zoom)` | --- | Set zoom type for the sprites |
+| SetSpritesSize  | `SetSpritesSize(size)` | --- | Set size type for the sprites |
+| SetSpritesZoom  | `SetSpritesZoom(zoom)` | --- | Set zoom type for the sprites |
 | ClearSprites    | `ClearSprites()` | --- | Initialises the Sprite Attribute Table (OAM) |
-| PUTSPRITE       | `PUTSPRITE(char plane, char x, char y, char color, char pattern)` | --- | Displays a sprite |
-| GetSPRattrVRAM  | `GetSPRattrVRAM(char plane)` | `unsigned int` | Gets the address in video memory of the Sprite attributes of specified plane |
+| PUTSPRITE       | `PUTSPRITE(plane, x, y, color, pattern)` | --- | Displays a sprite |
+| GetSPRattrVRAM  | `GetSPRattrVRAM(plane)` | `unsigned int` | Gets the address in video memory of the Sprite attributes of specified plane |
 
 <br/>
 
@@ -211,22 +211,20 @@ Test the functionality of the library in a system environment for ROM (BIOS+ROM+
 
 [`examples/Example02`](examples/Example02)
 
-![Example screenshot](docs/pics/EXAMPLE2_01.png) 
-
-![Example screenshot](docs/pics/EXAMPLE2_02.png) 
+![Example 2 screenshot 1](docs/pics/EXAMPLE2_01.png) 
+![Example 2 screenshot 2](docs/pics/EXAMPLE2_02.png) 
+![Example 2 screenshot 3](docs/pics/EXAMPLE2_03.png)
+![Example 2 screenshot 4](docs/pics/EXAMPLE2_04.png)
+![Example 2 screenshot 5](docs/pics/EXAMPLE2_05.png)
+![Example 2 screenshot 6](docs/pics/EXAMPLE2_06.png)
 
 <br/>
 
 ### Example 3 (MSX-DOS)
 
-This example tests all of the library's functions in the four screen modes of the TMS9918A.<br/>
-Test the functionality of the library in a system environment for MSX-DOS.
+Adaptation of Example 2 for the MSX-DOS environment.
 
 [`examples/Example03`](examples/Example02)
-
-![Example screenshot](docs/pics/EXAMPLE2_04.png) 
-
-![Example screenshot](docs/pics/EXAMPLE2_06.png) 
 
 <br/>
 

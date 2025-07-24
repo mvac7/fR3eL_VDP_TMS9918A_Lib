@@ -384,10 +384,11 @@ You can use the definitions: [3.3 Screen Modes](#33-Screen-Modes)
 
 <table>
 <tr><th colspan=3 align="left">COLOR</th></tr>
-<tr><td colspan=3>Put the ink, background and foreground colors.<br/>This function has different behaviors depending on the screen mode.<br/>
-In Text1 mode, the color change is instantaneous except the border color which has no effect.<br/>
-In Graphic1, Graphic2 and MultiColor modes, only the border color has an instant effect.<br/>
-Ink and background colors are only used when starting the screen with the SCREEN() function.</td></tr>
+<tr><td colspan=3>Put the ink, background and foreground colors.<br/>This function has different behaviors depending on the screen mode.<ul>
+<li>In Text1 mode, the color change is instantaneous except the border color which has no effect.</li>
+<li>In Graphic1, Graphic2 and MultiColor modes, only the border color has an instant effect.</li>
+<li>Ink and background colors are used when starting the Graphic1 mode.</li>
+</ul></td></tr>
 <tr><th>Function</th><td colspan=2>COLOR(ink, background, border)</td></tr>
 <tr><th rowspan=3>Input</th><td>char</td><td>Ink color (0-15)</td></tr>
 <tr><td>char</td><td>Background color (0-15)</td></tr>
@@ -415,11 +416,15 @@ You can use the definitions: [3.6 Color Names](#36-Color-Names)
 
 <table>
 <tr><th colspan=3 align="left">CLS</th></tr>
-<tr><td colspan=3>Clear Screen.<br/>Fill VRAM Name Table with the value 0.</td></tr>
+<tr><td colspan=3>Clear Screen.<br/>Fill VRAM Name Table with the value 0.<br/>Note: Does not hide Sprite planes.</td></tr>
 <tr><th>Function</th><td colspan=2>CLS()</td></tr>
 <tr><th>Input</th><td colspan=2>-</td></tr>
 <tr><th>Output</th><td colspan=2>-</td></tr>
 </table>
+
+| Note: |
+| :---  |
+| Does not hide Sprite planes. |
 
 ##### Example:
 
@@ -475,9 +480,9 @@ You can use the definitions: [3.6 Color Names](#36-Color-Names)
 
 <table>
 <tr><th colspan=3 align="left">GetVDP</th></tr>
-<tr><td colspan=3>Gets the value in a VDP register.<br/>Provides the mirror value of a VDP register stored in system variables (RG0SAV=0x0xF3DF).</td></tr>
+<tr><td colspan=3>Gets the value in a VDP register.<br/>Provides the mirror value stored in system variables (RG0SAV=0xF3DF).</td></tr>
 <tr><th>Function</th><td colspan=2>GetVDP(register)</td></tr>
-<tr><th>Input</th><td>char</td><td>VDP register (0-7)</td></tr>
+<tr><th>Input</th><td>char</td><td>VDP register number (0-7)</td></tr>
 <tr><th>Output</th><td>char</td><td>Value</td></tr>
 </table>
 
@@ -491,8 +496,7 @@ Output:	1=Yes/True ; 0=No/False
 char isText1Mode(void)
 {
 	char m1=GetVDP(VDP_Mode1);
-	if (m1&0b00010000) return 1; 		//Text 40col Mode
-	return 0;	
+	return m1 & 0b00010000;
 }
 ```
 
@@ -513,10 +517,11 @@ char isText1Mode(void)
 
 ```c
 	char m1=GetVDP(VDP_Mode1);
-	SetVDP(VDP_Mode1,m1 | 0b01000000); //BLK Enable
+	SetVDP(VDP_Mode1, m1 | 0b01000000); //BLK Enable
 ```
 
 <br/>
+
 
 
 ---
@@ -654,7 +659,6 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 <br/>
 
-
 #### 4.3.7 CopyFromVRAM
 
 <table>
@@ -723,6 +727,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 
 ---
+
 ### 4.4 Access to Sprites
 
 #### 4.4.1 SetSpritesSize
@@ -766,12 +771,12 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 ##### Examples:
 
 ```c
-	SetSpritesZoom(0);	//No zoom
+	SetSpritesZoom(0);				//No zoom
 ```
 
 ```c
 	SetSpritesSize(SPRITES16x16);
-	SetSpritesZoom(ON);
+	SetSpritesZoom(ON);				//zoom x2
 ```
 
 <br/>
@@ -834,6 +839,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 ```c
 	unsigned int vaddr;
 	
+	SCREEN(1);
 	SetSpritesSize(SPRITES16x16);
 	
 	vaddr=GetSPRattrVRAM(10);	//sprite plane 10

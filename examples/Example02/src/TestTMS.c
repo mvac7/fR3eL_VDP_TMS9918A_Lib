@@ -50,10 +50,10 @@ void WAIT(uint cicles);
 char PEEK(uint address);
 void POKE(uint address, char value);
 
+char GetVFrequency(void);
+
 boolean isTxtMode(void);
 boolean isSPRITE16px(void);
-
-char GetVFrequency(void);
 
 void VLOCATE(char column, char line);
 void VPRINT(char* text);
@@ -75,7 +75,6 @@ void testSCREEN2(void);
 void testSCREEN3(void);
 
 void testCLS(void);
-
 void testFill(void);
 void testVpeekVpoke(void);
 
@@ -97,6 +96,7 @@ void testSpriteVisible(void);
 
 
 // ---------------------------------------------------------------------------- Constants
+const char text00[] = "MSX fR3eL SDCC Libraries";
 const char text01[] = "Test VDP_TMS9918A Lib"; 
 
 const char textMENU[5][30] = {
@@ -266,8 +266,8 @@ const char font01Bold_sc06x8_COL[]={
 const char tileset_06x8_COL2[]={
 0x94,0x94,0x34,0x34,0xB4,0xB4,0x74,0x74,
 0xF4,0xF4,0xF4,0xF4,0xE4,0xE4,0xE4,0xE4,
-0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,
-0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4};
+0xFD,0xE4,0xF5,0xE7,0xEC,0xF2,0xE3,0xFA,
+0xF6,0xE8,0xF9,0xEB,0xE1,0xFE,0xEF,0xF0};
 
 
 const char sprcol[16]={
@@ -383,7 +383,6 @@ void WAIT(uint cicles)
 {
   uint i;
   for(i=0;i<cicles;i++) HALT;
-  return;
 }
 
 
@@ -416,6 +415,25 @@ __asm
 __endasm;
 }
 
+
+
+void VLOCATE(char column, char line)
+{
+	if (isTxtMode()) vprint_addr = BASE0+(line*40)+column;	//Text 40col Mode
+	else vprint_addr = BASE10+(line*32)+column; 			//GRAPHIC1 or GRAPHIC2 modes
+}
+
+
+
+void VPRINT(char* text)
+{
+	SetVDPtoWRITE(vprint_addr);
+	while(*(text))
+	{
+		FastVPOKE(*(text++));
+		vprint_addr++;
+	}
+}
 
 
 
@@ -518,10 +536,15 @@ __endasm;
 
 
 
+/* =============================================================================
+isTxtMode
+Indicates whether Text 1 mode is active.
+Output:	1=Yes/True ; 0=No/False
+============================================================================= */
 boolean isTxtMode(void)
 {
-	char VDP1 = *(unsigned int *) 0xF3E0;	//RG1SAV=0xF3E0 (System var)
-	return VDP1 & 0b00010000;	
+	//char VDP1 = *(unsigned int *) 0xF3E0;	//RG1SAV=0xF3E0 (System var)
+	return GetVDP(1) & 0b00010000;		
 }
 
 
@@ -534,74 +557,9 @@ boolean isSPRITE16px(void)
 
 
 
-void VLOCATE(char column, char line)
-{
-	if (isTxtMode()) vprint_addr = BASE0+(line*40)+column;	//Text 40col Mode
-	else vprint_addr = BASE10+(line*32)+column; 			//GRAPHIC1 or GRAPHIC2 modes
-}
-
-
-
-void VPRINT(char* text)
-{
-	SetVDPtoWRITE(vprint_addr);
-	while(*(text))
-	{
-		FastVPOKE(*(text++));
-		vprint_addr++;
-	}
-}
-
-
-
 void ClearVRAM(void)
 {	
 	FillVRAM(0,0x3FFF,0x00);
-}
-
-
-
-void ShowMenu(void)
-{
-	char i;
-		
-	COLOR(15,0,1);
- 	SCREEN(1);
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
-	CopyToVRAM((uint) font01Bold_sc06x8_COL,BASE6,32);
-	
-	for(i=0;i<16;i++)
-	{
-		VLOCATE(i<<1,0);
-		DrawFillBox(2,2,128+(8*i));
-		VLOCATE(i<<1,22);
-		DrawFillBox(2,2,128+(8*i));
-	}
-	
-	VLOCATE(1,3);
-	VPRINT(text01); 
-	
-	VLOCATE(0,4);
-	DrawBox(32,14);
-	
-	VLOCATE(0,17);
-	DrawBox(32,6);
-		
-	for(i=0;i<5;i++)
-	{
-		VLOCATE(1,6+i);
-		VPRINT(textMENU[i]);
-	}
-			
-	VLOCATE(1,18);
-	VPRINT("MSX version: ");
-	VPRINT(textVers[PEEK(MSXVER)]); //(0=MSX1;1=MSX2;2=MSX2+;3=turboR)
-	
-	VLOCATE(1,19);
-	VPRINT("VDP V.Freq.: ");
-	VPRINT(textVFreq[GetVFrequency()]);
-	
-	time=30*50; //30segs in PAL
 }
 
 
@@ -668,6 +626,53 @@ void Menu(void)
 	
 }
 
+
+
+void ShowMenu(void)
+{
+	char i;
+		
+	COLOR(15,0,1);
+ 	SCREEN(1);
+	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
+	CopyToVRAM((uint) font01Bold_sc06x8_COL,BASE6,32);
+	
+	for(i=0;i<16;i++)
+	{
+		VLOCATE(i<<1,0);
+		DrawFillBox(2,2,128+(8*i));
+		VLOCATE(i<<1,22);
+		DrawFillBox(2,2,128+(8*i));
+	}
+	
+	VLOCATE(1,3);
+	VPRINT(text00); 
+	VLOCATE(1,4);
+	VPRINT(text01);  
+	
+	VLOCATE(0,5);
+	DrawBox(32,12);
+	
+	VLOCATE(0,16);
+	DrawBox(32,7);
+	
+	//show menu items	
+	for(i=0;i<5;i++)
+	{
+		VLOCATE(1,6+i);
+		VPRINT(textMENU[i]);
+	}
+			
+	VLOCATE(1,17);
+	VPRINT("MSX version: ");
+	VPRINT(textVers[PEEK(MSXVER)]); //(0=MSX1;1=MSX2;2=MSX2+;3=turboR)
+	
+	VLOCATE(1,18);
+	VPRINT("VDP V.Freq.: ");
+	VPRINT(textVFreq[GetVFrequency()]);
+	
+	time=30*50; //30segs in PAL
+}
 
 
 
@@ -749,7 +754,8 @@ void testSCREEN1(void)
 	WAIT(WAIT_TIME);
 
 	SetVDPtoWRITE(G1_MAP);
-	for(i=0;i<255;i++) FastVPOKE(i);
+	for(i=0;i<255;i++) FastVPOKE(i);	//print 0>254 tiles
+	FastVPOKE(i);						//print 255 tile
 	WAIT(WAIT_TIME);
 
 	/* colors
@@ -774,7 +780,7 @@ void testSCREEN1(void)
 // ############################################################### TEST SCREEN 2
 void testSCREEN2(void)
 {
-	unsigned int i;
+//	unsigned int i;
 	char value=0;
 	
 	ClearVRAM();
@@ -782,8 +788,9 @@ void testSCREEN2(void)
 	COLOR(0,14,1);    
 	SCREEN(2);
 
-	SetVDPtoWRITE(BASE10);
-	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
+	SortG2map();
+//	SetVDPtoWRITE(BASE10);
+//	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
 
 	VLOCATE(23,23);
 	VPRINT(" SCREEN 2");	
@@ -936,20 +943,21 @@ void testVpeekVpoke(void)
 	for(i=0;i<255;i++){
 		if (VPEEK(vaddr++)!=i){testResult=false;break;}
 	}
+	WAIT(WAIT_TIME/2);
 	VPRINT(CheckResult[testResult]);
 	WAIT(WAIT_TIME);
 
 	//test FastVPOKE
 	posY+=2;
-	vaddr=BASE0+(40*10);
-	VLOCATE(0,posY);
+	VLOCATE(0,posY++);
 	VPRINT("Test FastVPOKE");
+	vaddr=BASE0+(40*posY);
 	SetVDPtoWRITE(vaddr);
 	for(i=0;i<255;i++) FastVPOKE(i);
 	WAIT(WAIT_TIME);
 	
 	//test FastVPEEK
-	vaddr=BASE0+(40*10);
+	vaddr=BASE0+(40*posY);
 	testResult=true;
 	posY+=(256/40)+2;
 	VLOCATE(0,posY);
@@ -958,6 +966,7 @@ void testVpeekVpoke(void)
 	for(i=0;i<255;i++){
 		if (FastVPEEK()!=i){testResult=false;break;}
 	}
+	WAIT(WAIT_TIME/2);
 	VPRINT(CheckResult[testResult]);	
 	WAIT(WAIT_TIME);
 }
@@ -1012,7 +1021,7 @@ void testSprites(void)
 	setSpritesPatterns();
 
 	VLOCATE(0,posY++);
-	VPRINT("Test SPRITEs -----------------");  
+	VPRINT("Test SPRITEs ------------------");  
 	WAIT(50);
 
 	// sprites 8x8

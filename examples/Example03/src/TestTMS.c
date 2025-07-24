@@ -97,6 +97,7 @@ void testSpriteVisible(void);
 
 
 // ---------------------------------------------------------------------------- Constants
+const char text00[] = "MSX fR3eL SDCC Libraries";
 const char text01[] = "Test VDP_TMS9918A Lib"; 
 
 const char textMENU[6][30] = {
@@ -267,8 +268,8 @@ const char font01Bold_sc06x8_COL[]={
 const char tileset_06x8_COL2[]={
 0x94,0x94,0x34,0x34,0xB4,0xB4,0x74,0x74,
 0xF4,0xF4,0xF4,0xF4,0xE4,0xE4,0xE4,0xE4,
-0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,
-0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4,0xF4};
+0xFD,0xE4,0xF5,0xE7,0xEC,0xF2,0xE3,0xFA,
+0xF6,0xE8,0xF9,0xEB,0xE1,0xFE,0xEF,0xF0};
 
 
 const char sprcol[16]={
@@ -676,51 +677,6 @@ void ClearVRAM(void)
 
 
 
-void ShowMenu(void)
-{
-	char i;
-		
-	COLOR(15,0,1);
- 	SCREEN(1);
-	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
-	CopyToVRAM((uint) font01Bold_sc06x8_COL,BASE6,32);
-	
-	for(i=0;i<16;i++)
-	{
-		VLOCATE(i<<1,0);
-		DrawFillBox(2,2,128+(8*i));
-		VLOCATE(i<<1,22);
-		DrawFillBox(2,2,128+(8*i));
-	}
-	
-	VLOCATE(1,3);
-	VPRINT(text01); 
-	
-	VLOCATE(0,4);
-	DrawBox(32,14);
-	
-	VLOCATE(0,17);
-	DrawBox(32,6);
-	
-	for(i=0;i<6;i++)
-	{
-		VLOCATE(1,6+i);
-		VPRINT(textMENU[i]);
-	}
-		
-	VLOCATE(1,18);
-	VPRINT("MSX version: ");
-	VPRINT(textVers[ReadBIOS(MSXVER)]); //(0=MSX1;1=MSX2;2=MSX2+;3=turboR)
-	
-	VLOCATE(1,19);
-	VPRINT("VDP V.Freq.: ");
-	VPRINT(textVFreq[GetVFrequency()]);
-	
-	time=30*50; //30segs in PAL
-}
-
-
-
 void Menu(void)
 {
 	boolean isExit=false;
@@ -785,6 +741,53 @@ void Menu(void)
 	
 }
 
+
+
+void ShowMenu(void)
+{
+	char i;
+		
+	COLOR(15,0,1);
+ 	SCREEN(1);
+	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
+	CopyToVRAM((uint) font01Bold_sc06x8_COL,BASE6,32);
+	
+	for(i=0;i<16;i++)
+	{
+		VLOCATE(i<<1,0);
+		DrawFillBox(2,2,128+(8*i));
+		VLOCATE(i<<1,22);
+		DrawFillBox(2,2,128+(8*i));
+	}
+	
+	VLOCATE(1,3);
+	VPRINT(text00); 
+	VLOCATE(1,4);
+	VPRINT(text01);  
+	
+	VLOCATE(0,5);
+	DrawBox(32,12);
+	
+	VLOCATE(0,16);
+	DrawBox(32,7);
+	
+	//show menu items	
+	for(i=0;i<5;i++)
+	{
+		VLOCATE(1,6+i);
+		VPRINT(textMENU[i]);
+	}
+		
+	VLOCATE(1,17);
+	VPRINT("MSX version: ");
+	VPRINT(textVers[ReadBIOS(MSXVER)]); //(0=MSX1;1=MSX2;2=MSX2+;3=turboR)
+	
+	VLOCATE(1,18);
+	VPRINT("VDP V.Freq.: ");
+	VPRINT(textVFreq[GetVFrequency()]);
+	
+	time=30*50; //30segs in PAL
+}
 
 
 
@@ -866,7 +869,8 @@ void testSCREEN1(void)
 	WAIT(WAIT_TIME);
 
 	SetVDPtoWRITE(G1_MAP);
-	for(i=0;i<255;i++) FastVPOKE(i);
+	for(i=0;i<255;i++) FastVPOKE(i);	//print 0>254 tiles
+	FastVPOKE(i);						//print 255 tile
 	WAIT(WAIT_TIME);
 
 	/* colors
@@ -1058,15 +1062,15 @@ void testVpeekVpoke(void)
 
 	//test FastVPOKE
 	posY+=2;
-	vaddr=BASE0+(40*10);
-	VLOCATE(0,posY);
+	VLOCATE(0,posY++);
 	VPRINT("Test FastVPOKE");
+	vaddr=BASE0+(40*posY);
 	SetVDPtoWRITE(vaddr);
 	for(i=0;i<255;i++) FastVPOKE(i);
 	WAIT(WAIT_TIME);
 	
 	//test FastVPEEK
-	vaddr=BASE0+(40*10);
+	vaddr=BASE0+(40*posY);
 	testResult=true;
 	posY+=(256/40)+2;
 	VLOCATE(0,posY);
@@ -1129,7 +1133,7 @@ void testSprites(void)
 	setSpritesPatterns();
 
 	VLOCATE(0,posY++);
-	VPRINT("Test SPRITEs -----------------");  
+	VPRINT("Test SPRITEs ------------------");  
 	WAIT(50);
 
 	// sprites 8x8
