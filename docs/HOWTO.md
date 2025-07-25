@@ -2,7 +2,7 @@
 
 | Attention! |
 | :---       |
-| The following document has been written using an English translator.<br/>You can participate in the improvement of this document, transmitting your corrections or suggestions in the issues of this project or the main fR3eL project.<br/>Thanks for understanding. |
+| The following document has been written using an English translation App.<br/>You can participate in the improvement of this document, transmitting your corrections or suggestions in the issues of this project or the main fR3eL project.<br/>Thanks for understanding. |
 
 <br/>
 
@@ -621,7 +621,7 @@ Requires the VDP to be in write mode, using the SetVDPtoWRITE or VPOKE function 
 
 <table>
 <tr><th colspan=3 align="left">FillVRAM</th></tr>
-<tr><td colspan=3>Fill a large area of the VRAM of the same value.</td></tr>
+<tr><td colspan=3>Fills an area of ​​VRAM with the same value.</td></tr>
 <tr><th>Function</th><td colspan=2>FillVRAM(VRAMaddr, size, value)</td></tr>
 <tr><th rowspan=3>Input</th><td>unsigned int</td><td>VRAM address</td></tr>
 <tr><td>unsigned int</td><td>block size</td></tr>

@@ -1057,6 +1057,7 @@ void testVpeekVpoke(void)
 	for(i=0;i<255;i++){
 		if (VPEEK(vaddr++)!=i){testResult=false;break;}
 	}
+	WAIT(WAIT_TIME/2);
 	VPRINT(CheckResult[testResult]);
 	WAIT(WAIT_TIME);
 
@@ -1079,6 +1080,7 @@ void testVpeekVpoke(void)
 	for(i=0;i<255;i++){
 		if (FastVPEEK()!=i){testResult=false;break;}
 	}
+	WAIT(WAIT_TIME/2);
 	VPRINT(CheckResult[testResult]);	
 	WAIT(WAIT_TIME);
 }

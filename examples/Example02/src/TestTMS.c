@@ -4,7 +4,7 @@
 - Version: 1.5 (20/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
-- Format: MSX ROM 8K
+- Format: 16K ROM
 - Programming language: C and Z80 assembler
 - Compiler: SDCC 4.4 or newer
 
