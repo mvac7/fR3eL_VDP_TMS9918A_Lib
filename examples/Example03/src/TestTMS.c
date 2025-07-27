@@ -24,7 +24,6 @@ Test VDP_TMS9918A MSX Library (fR3eL Project)
 - v1.3 ( 4/05/2019)
 ============================================================================= */
 
-// ---------------------------------------------------------------------------- Includes
 #include "../include/newTypes.h"
 #include "../include/msxBIOS.h"
 #include "../include/msxSystemVariables.h"
@@ -114,7 +113,7 @@ const char textVers[4][7] = {"MSX1","MSX2","MSX2+","turboR"};
 const char textVFreq[2][5] = {"NTSC","PAL"};
 const char CheckResult[2][8] = {"=ERROR!","=Ok    "};
 
-const char msg_PressKey[] = "Press any key to continue";
+const char msg_PressKey[] = "Press any key";
 
 
 
@@ -368,40 +367,40 @@ char tilesetBakup[1024];
 //
 void main(void)
 {
-  char colorInk=0;
-  char colorBG=0;
-  char colorBDR=0;
-  char scrcolumns=0;
-  
-  colorInk=PEEK(FORCLR);
-  colorBG=PEEK(BAKCLR);
-  colorBDR=PEEK(BDRCLR);
-  scrcolumns=PEEK(LINLEN);
+	char colorInk=0;
+	char colorBG=0;
+	char colorBDR=0;
+	char scrcolumns=0;
+
+	colorInk=PEEK(FORCLR);
+	colorBG=PEEK(BAKCLR);
+	colorBDR=PEEK(BDRCLR);
+	scrcolumns=PEEK(LINLEN);
 
 
-  //HALT;
-  PRINT(text01); 
-  PRINT("\n\r");
-  PRINT(msg_PressKey);
-  INKEY();
+	//HALT;
+	PRINT(text01); 
+	PRINT("\n\r");
+	PRINT(msg_PressKey);
+	INKEY();
 
   
 //TEST -------------------------------------------------------------------------   
-  Menu();
+	Menu();
   
 
 //EXIT MSXDOS ------------------------------------------------------------------
-  //restore MSX-DOS screen
-  COLOR(colorInk,colorBG,colorBDR);
-//  WIDTH(scrcolumns);
+//restore MSX-DOS screen
+	COLOR(colorInk,colorBG,colorBDR);
+	//  WIDTH(scrcolumns);
 
-  if(scrcolumns<33) SCREEN1();
-  else SCREEN0();
-  //
-  
-  PRINT("END Test");
-  
-  KillBuffer(); //Clear keyboard system buffer
+	if(scrcolumns<33) SCREEN1();
+	else SCREEN0();
+	//
+
+	PRINT("END Test");
+
+	KillBuffer(); //Clear keyboard system buffer
     
 //--------------------------------------------------------------------- end EXIT   
 }
@@ -772,7 +771,7 @@ void ShowMenu(void)
 	DrawBox(32,7);
 	
 	//show menu items	
-	for(i=0;i<5;i++)
+	for(i=0;i<6;i++)
 	{
 		VLOCATE(1,6+i);
 		VPRINT(textMENU[i]);
@@ -825,8 +824,6 @@ void ShowMenu(void)
 
 
 
-
-
 // ############################################################### TEST SCREEN 0
 void testSCREEN0(void)
 {
@@ -844,8 +841,12 @@ void testSCREEN0(void)
 	testVpeekVpoke();
 	WAIT(WAIT_TIME);
 
+	COLOR(MAGENTA,DARK_YELLOW,0);  
+
 	testFill();
 	WAIT(WAIT_TIME);
+	
+	COLOR(BLACK,GRAY,0); 
 	
 	testCLS();
 }
@@ -882,6 +883,10 @@ void testSCREEN1(void)
 	//FillVRAM(G1_COL,32,0xF4);
 
 	WAIT(WAIT_TIME);
+	
+	COLOR(1,4,5);	//test COLOR (change after SCREEN)
+	
+	WAIT(WAIT_TIME);
 
 	//test fill VRAM 
 	testFill();
@@ -895,16 +900,16 @@ void testSCREEN1(void)
 // ############################################################### TEST SCREEN 2
 void testSCREEN2(void)
 {
-	unsigned int i;
 	char value=0;
 	
 	ClearVRAM();
 
-	COLOR(0,14,1);    
+	COLOR(0,1,14);    
 	SCREEN(2);
 
-	SetVDPtoWRITE(BASE10);
-	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
+	SortG2map();
+//	SetVDPtoWRITE(BASE10);
+//	for(i=0;i<0x300;i++) FastVPOKE(value++);	//name table in order
 
 	VLOCATE(23,23);
 	VPRINT(" SCREEN 2");
@@ -1065,6 +1070,7 @@ void testVpeekVpoke(void)
 	posY+=2;
 	VLOCATE(0,posY++);
 	VPRINT("Test FastVPOKE");
+	WAIT(WAIT_TIME/2);
 	vaddr=BASE0+(40*posY);
 	SetVDPtoWRITE(vaddr);
 	for(i=0;i<255;i++) FastVPOKE(i);

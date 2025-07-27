@@ -46,6 +46,8 @@ Enjoy it!
 
 ## History of versions
 
+- v1.7.1 (27/07/2025)
+	- Fix Bug #17 Error assigning colors in Text1 mode
 - v1.7 (17/07/2025) 
 	- #14 Rename GetSPRattrVADDR function to GetSPRattrVRAM. The GetSPRattrVADDR tag is now used for the inline assembler
 	- #15 Fix bug in GetSPRattrVRAM function

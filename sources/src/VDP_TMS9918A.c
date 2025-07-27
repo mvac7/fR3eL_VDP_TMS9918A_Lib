@@ -1,7 +1,7 @@
 /* ==============================================================================                                                                            
 # VDP_TMS9918A MSX Library (fR3eL Project)
 
-- Version: 1.7 (17/07/2025)
+- Version: 1.7.1 (27/07/2025)
 - Author: mvac7/303bcn
 - Architecture: MSX
 - Environment: ROM, MSX-DOS or BASIC
@@ -22,10 +22,12 @@ Features:
  
 ## History of versions (dd/mm/yyyy):
 
+- v1.7.1 (27/07/2025)
+	- Fix Bug #17 Error assigning colors in Text1 mode
 - v1.7 (17/07/2025) 
 	- #14 Rename GetSPRattrVADDR function to GetSPRattrVRAM
 	  The GetSPRattrVADDR tag is now used for the inline assembler
-	- #15 Fix bug in GetSPRattrVRAM function
+	- #15 Fix Bug in GetSPRattrVRAM function
 	- #16 Change ClearMC function. Now clear the Pattern Table.
 - v1.6 (11/07/2025) 
 	- #12 Bug Fix in SCREEN function
@@ -97,10 +99,11 @@ __asm
 
   
 TMS_screen0$:
+    call TMS_colorMode0$
 	call ClearT1
 
 	ld   HL,#mode_TXT1
-	;screen 0 > 40 columns mode
+//screen 0 > 40 columns mode
 //	ld   A,#39  ;default value
 //	ld   (#LINL40),A
 	jr   TMS_setREGs$
@@ -149,10 +152,51 @@ TMS_screenEND$:
 
 
 
-/* --------------------------------------------------------------
+/* --------------------------------------------------------------------------
+-------------------------------------------------------------------------- */
+TMS_SetCOLORs:
+
+	//IF screen0?
+	ld   A,(#RG0SAV+1)		//reads the last value of register 1 of the VDP in the system variables
+	bit  4,A				
+	jr   NZ,TMS_colorMode0$	//M1=1?
+
+	ld   A,(#BDRCLR)
+	ld   B,A
+	jr   TMS_SAVEcolorREG$
+
+TMS_colorMode0$:
+	ld   A,(#BAKCLR)
+	ld   B,A
+
+TMS_SAVEcolorREG$:
+/* --------------------------------------------------------------------------
+Register 7: colour register (info by Portar Doc)
+  Bit  Name  Expl.
+  0-3  TC0-3 Background colour in SCREEN 0 (also border colour in SCREEN 1-3)
+  4-7  BD0-3 Foreground colour in SCREEN 0
+-------------------------------------------------------------------------- */
+	ld   A,(#FORCLR)
+//-------- A*16
+	add  A
+	add  A
+	add  A
+	add  A
+//-------------
+	or   B
+	
+TMS_SET7REG$:
+	ld   C,#0x07	//VDP reg 7
+	jp   writeVDP	//A-->value;  C-->register number (0-7)
+// -------------------------------------------------------------------------- END TMS_SetCOLORs
+
+
+
+
+/* --------------------------------------------------------------------------
 Writes in the color table, with the last values of the ink and
 background indicated with the COLOR function
--------------------------------------------------------------- */
+-------------------------------------------------------------------------- */
 TMS_initG1$:
 	ld   A,(#BAKCLR)
 	ld   B,A 
@@ -162,9 +206,9 @@ TMS_initG1$:
 	add  A
 	add  A
 	add  A
-	add  A
-	
+	add  A	
 	or   B
+	
 	ld   DE,#32
 	ld   HL,#G1_COL
 	jp   fillVR			;fill color table with Ink+BG Colors
@@ -173,13 +217,13 @@ TMS_initG1$:
 
 
 
-/* --------------------------------------------------------------
+/* ----------------------------------------------------------
 Screens data  
 
 Reg/Bit  7     6     5     4     3     2     1     0
 0        -     -     -     -     -     -     M3    EXTVID
-1        4/16K	BLK   GINT	M1    M2    -     SIZE  MAG
--------------------------------------------------------------- */
+1        4/16K BLK   GINT  M1    M2    -     SIZE  MAG
+---------------------------------------------------------- */
 
 //Text1> M1=1; M2=0; M3=0  
 mode_TXT1:
@@ -350,13 +394,13 @@ __endasm;
 COLOR
 Description:
 		Specifies the ink, foreground and background colors.
-		This function has different behaviors depending on the screen mode.
-		In Text1 mode, the color change is instantaneous except the 
-		border color which has no effect.
-		In Graphic1, Graphic2 and Multicolor modes, only the border color has 
-		an instant effect. 
-		Ink and background colors are only used when starting the screen in
-		Graphic1 mode.
+		This function has different behaviors depending on the screen mode:
+		- In Text1 mode, the color change is instantaneous except the 
+		  border color which has no effect.
+		- In Graphic1 mode, the colors assigned for Ink and Background will be 
+		  applied to the Tileset when the screen is initialized with the SCREEN.
+		- In Graphic2 and Multicolor modes, only the border color has 
+		  an instant effect.
 
 Input:	[char] ink color
 		[char] background color
@@ -373,42 +417,15 @@ __asm
 	ld   IX,#0
 	add  IX,SP
 
-;save values in system vars
-	ld   (#FORCLR),A		//ink color (foreground) 
-	ld   A,L
-	ld   (#BAKCLR),A		//background color
-	ld   A,4(IX)  
-	ld   (#BDRCLR),A		//border color
+//save values in system vars
+	ld   (#FORCLR),A		//(14ts) ink color (foreground) 
+	ld   A,L				//( 5ts)
+	ld   (#BAKCLR),A		//(14ts) background color
+	ld   A,4(IX)			//(21ts)
+	ld   (#BDRCLR),A		//(14ts) border color
+//total ----------------->68c
 
-	ld   A,(#RG0SAV+1)		//reads the last value of register 1 of the VDP in the system variables
-	bit  4,A				//M1=1   IF screen0?
-	jr   NZ,TMS_colorMode0$
-
-	ld   A,(#BDRCLR)
-	ld   B,A  
-	ld   A,(#BAKCLR)
-	jr   TMS_SAVEcolorREG$
-
-TMS_colorMode0$:
-	ld   A,(#BAKCLR)
-	ld   B,A
-	ld   A,(#FORCLR)
-
-TMS_SAVEcolorREG$:
-/* --------------------------------------------------------------------------
-Register 7: colour register (info by Portar Doc)
-  Bit  Name  Expl.
-  0-3  TC0-3 Background colour in SCREEN 0 (also border colour in SCREEN 1-3)
-  4-7  BD0-3 Foreground colour in SCREEN 0
--------------------------------------------------------------------------- */
-	add  A	//multiply x16
-	add  A
-	add  A
-	add  A
-	or   B
-
-	ld   C,#0x07	//VDP reg 7
-	call writeVDP
+	call TMS_SetCOLORs
 
 	pop  IX
 __endasm;

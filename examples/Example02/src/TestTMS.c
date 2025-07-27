@@ -24,7 +24,6 @@ Test VDP_TMS9918A MSX Library (fR3eL Project)
 - v1.1 ( 4/05/2019)   
 ============================================================================= */
 
-// ---------------------------------------------------------------------------- Includes
 #include "../include/newTypes.h"
 #include "../include/msxBIOS.h"
 #include "../include/msxSystemVariables.h"
@@ -35,12 +34,10 @@ Test VDP_TMS9918A MSX Library (fR3eL Project)
 
 
 
+// ---------------------------------------------------------------------------- Labels
 #define  HALT __asm halt __endasm   //wait for the next interrupt
 
 #define WAIT_TIME 100
-
-// ---------------------------------------------------------------------------- Labels
-
 
 
 
@@ -364,8 +361,6 @@ char tilesetBakup[1024];
 
 // ---------------------------------------------------------------------------- Functions
 
-
-//
 void main(void)
 {
 	VDPstatus = true;
@@ -698,14 +693,14 @@ void ShowMenu(void)
 	VLOCATE(5,16);
 	DrawFillBox(30,4,1);
 	
-	WAIT(50);
+	WAIT(WAIT_TIME/2);
 
 	for(i=0;i<16;i++)
 	{ 
 		COLOR(i,15-i,0);
-		WAIT(15);
+		WAIT(WAIT_TIME/4);
 	}
-	WAIT(150);
+	WAIT(WAIT_TIME);
 }*/
 
 
@@ -728,9 +723,13 @@ void testSCREEN0(void)
 
 	testVpeekVpoke();
 	WAIT(WAIT_TIME);
+	
+	COLOR(MAGENTA,DARK_YELLOW,0);  
 
 	testFill();
 	WAIT(WAIT_TIME);
+	
+	COLOR(BLACK,GRAY,0); 
 	
 	testCLS();
 }
@@ -767,6 +766,10 @@ void testSCREEN1(void)
 	//FillVRAM(G1_COL,32,0xF4);
 	
 	WAIT(WAIT_TIME);
+	
+	COLOR(1,4,5);	//test COLOR (change after SCREEN)
+	
+	WAIT(WAIT_TIME);
 
 	//test fill VRAM 
 	testFill();
@@ -780,12 +783,11 @@ void testSCREEN1(void)
 // ############################################################### TEST SCREEN 2
 void testSCREEN2(void)
 {
-//	unsigned int i;
 	char value=0;
 	
 	ClearVRAM();
 
-	COLOR(0,14,1);    
+	COLOR(0,1,14);    
 	SCREEN(2);
 
 	SortG2map();
@@ -951,6 +953,7 @@ void testVpeekVpoke(void)
 	posY+=2;
 	VLOCATE(0,posY++);
 	VPRINT("Test FastVPOKE");
+	WAIT(WAIT_TIME/2);
 	vaddr=BASE0+(40*posY);
 	SetVDPtoWRITE(vaddr);
 	for(i=0;i<255;i++) FastVPOKE(i);
@@ -1012,7 +1015,7 @@ void testSprites(void)
 	
 	initSprites();
 	
-	COLOR(0,0,1);
+	COLOR(0,4,5);
 	SCREEN(1);
 
 	CopyToVRAM((uint) font01Bold_sc06x8_PAT,BASE7,128*8);
@@ -1104,13 +1107,13 @@ void setSpritesPatterns(void)
 
 void initSprites(void)
 {
-	char X=0,Y=2;
+	char X=0,Y=0;
 	char i=0;
 
 	for(i=0;i<16;i++)
 	{
-		spr_posX[i]=X*32;
-		spr_posY[i]=Y*32;
+		spr_posX[i]=(X*32)+128;;
+		spr_posY[i]=(Y*32)+63;
 		X++;
 		if(X==4)
 		{
