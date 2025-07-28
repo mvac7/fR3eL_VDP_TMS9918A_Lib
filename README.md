@@ -25,8 +25,8 @@ It is designed to develop applications for MSX computers in any of the different
 using the Small Device C Compiler [(SDCC)](http://sdcc.sourceforge.net/) cross compiler.
 
 You can complement it with any of these libraries:
-- [VDP_PRINT](https://github.com/mvac7/fR3eL_VDP_PRINT_Lib) library with functions for display text strings in the graphic modes of the TMS9918A (G1 and G2).
-- [VDP_SPRITES](https://github.com/mvac7/SDCC_VDP_SPRITES_Lib) Library of functions for directly accessing sprite attributes from the TMS9918A video processor.
+- [VDP_PRINT](https://github.com/mvac7/fR3eL_VDP_PRINT_Lib) library with functions for display text strings in the graphic modes of the TMS9918A (Graphic1 and Graphic2).
+- [VDP_SPRITES](https://github.com/mvac7/fR3eL_VDP_SPRITES_Lib) Library of functions for directly accessing sprite attributes from the TMS9918A video processor.
 
 You also have a [VDP_TMS9918A_MSXBIOS](https://github.com/mvac7/fR3eL_VDP_TMS9918A_MSXBIOS_Lib) Library, developed using functions of the MSX BIOS. 
 The advantage of using the BIOS is that the library is more compact and guarantees compatibility with all MSX models, but the video memory access functions are slow.
