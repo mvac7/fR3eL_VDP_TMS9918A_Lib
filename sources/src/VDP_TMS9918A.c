@@ -10,7 +10,7 @@
 - Compiler: SDCC 4.4 or newer 
 
 ## Description:                                                              
-Opensource library for acces to VDP TMS9918A/28A/29A
+C function library for working with the TMS9918A/28A/29A video processor.
 
 Features:
 - Not use the BIOS 
